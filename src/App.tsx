@@ -24,13 +24,15 @@ function TimeEntryForm() {
 
   return (
     <form>
-      Add Log Entry
-      <ul>
-        <li>Date</li>
-        <li>Start Time</li>
-        <li>End Time</li>
-        <li>Notes</li>
-      </ul>
+      <h2>Add Log Entry</h2>
+      <label for='date-entry'>Date:</label>
+      <input type='date' id='date-entry' name='date-entry' />
+      <label for='start-time'>Start Time:</label>
+      <input type='time' id='start-time' name='start-time' />
+      <label for='end-time'>End Time:</label>
+      <input type='time' id='end-time' name='end-time' />
+      <label for='notes'>Notes:</label>
+      <textarea id='notes' name='notes' />
     </form>
   );
 }

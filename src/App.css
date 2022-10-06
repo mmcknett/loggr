@@ -3,4 +3,22 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  font-size: 2vh;
+  line-height: 2rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+input + label {
+  margin-top: 1rem;
+}
+
+#notes {
+  height: 50vh;
+  width: 80vw;
+  max-width: 40rem;
 }
