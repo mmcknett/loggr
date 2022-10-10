@@ -26,7 +26,7 @@ function App() {
             <div className='nav-bar'>
               { currentUser }
               <span className='vl'/>
-              <LougoutButton />
+              <LogoutButton />
             </div>
             <TimeEntryForm />
             <LogTable />
@@ -190,7 +190,7 @@ function LogTable() {
   )
 }
 
-function LougoutButton() {
+function LogoutButton() {
   const { auth } = useContext(FirebaseContext)!;
 
   return (
@@ -212,6 +212,7 @@ function LoginForm() {
     payload: string
   }
 
+  // This could switch to useForm, but it feels more comfortable not to involve a 3rd-party library in password-handling.
   const reducer = (state: ILoginForm, action: IPayload) => {
     switch (action.t) {
       case 'EMAIL':
@@ -259,7 +260,7 @@ function LoginForm() {
       <label htmlFor='password'>Password:</label>
       <input autoComplete='current-password' type='password' id='password' name='password' value={state.password} onChange={handleChange} />
 
-      <input type='submit' value='Log In' />
+      <button type='submit'>Log In</button>
       { state.lastError && <div style={{color: 'red' }}>{ state.lastError }</div> }
     </form>
   );
