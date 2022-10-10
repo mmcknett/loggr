@@ -32,6 +32,14 @@ button#logout {
   align-self: flex-end;
 }
 
+small {
+  font-size: 0.7em;
+}
+
+.error-msg {
+  color: #d00;
+}
+
 /* Time entry form styling */
 form {
   display: flex;

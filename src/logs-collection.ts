@@ -3,8 +3,10 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   onSnapshot,
   query,
+  setDoc,
   Timestamp,
   where
 } from "firebase/firestore";
@@ -12,7 +14,7 @@ import { useEffect, useState } from "react";
 import { IFirebaseContext } from "./FirebaseContext";
 
 export interface ILog {
-  id: string | undefined,
+  id?: string,
   startTime: Timestamp,
   endTime: Timestamp,
   note: string,
@@ -25,11 +27,16 @@ const ACCOUNTS_COLLECTION = 'accounts';
 
 const logPath = (uid: string) => `${ACCOUNTS_COLLECTION}/${uid}/${LOGS_COLLECTION}`;
 
-const checkedLogPath = ({ auth }: IFirebaseContext) => {
+const checkedUid = ({ auth }: IFirebaseContext) => {
   if (!auth.currentUser) {
     throw new Error(`No user is logged in.`);
   }
   const uid = auth.currentUser.uid;
+  return uid;
+}
+
+const checkedLogPath = (fBaseContext: IFirebaseContext) => {
+  const uid = checkedUid(fBaseContext)
   return logPath(uid);
 }
 
@@ -66,4 +73,11 @@ export async function deleteLog(fBaseContext: IFirebaseContext, id: string | und
       console.error(`Delete failed: ${err.message}`);
     }
   }
+}
+
+export async function saveDraft(fBaseContext: IFirebaseContext, entry: ILog | null) {
+  const uid = checkedUid(fBaseContext);
+  const docRef = doc(fBaseContext.db, ACCOUNTS_COLLECTION, uid);
+  await setDoc(docRef, { draft: entry }, { merge: true });
+  console.log(`Draft saved for user ${uid}`);
 }

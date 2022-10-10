@@ -6,6 +6,7 @@ import { ILog, DEFAULT_LIST, addLog, useLogs, deleteLog } from './logs-collectio
 import { Timestamp } from 'firebase/firestore';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useLogin } from './useLogin';
+import { useForm } from 'react-hook-form';
 
 // 0. [x] Logs stored per user
 // 1. [ ] As things are typed, a draft is saved.
@@ -50,53 +51,66 @@ function timeString(date = new Date()) {
   return `${twoDig(date.getHours())}:${twoDig(date.getMinutes())}`
 }
 
+type TimeEntryFormData = {
+  dateEntry: string,
+  startTime: string,
+  endTime: string,
+  note: string
+};
+
+function getLogFromFormFields(formFields: TimeEntryFormData) {
+  const start = Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.startTime}`));
+  const end   = Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.endTime}`));
+
+  const entry: ILog = {
+    startTime: start,
+    endTime: end,
+    note: formFields.note,
+    list: DEFAULT_LIST
+  };
+
+  return entry;
+}
+
 function TimeEntryForm() {
   const fBaseContext = useContext(FirebaseContext)!;
-
-  const submitTimeEntry = (evt: React.FormEvent<HTMLFormElement>) => {
-    evt.preventDefault();
-
-    const formFields = {
-      dateEntry: null,
-      startTime: null,
-      endTime: null,
-      note: ""
-    };
-
-    for (let element of evt.target) {
-      if (element.name in formFields) {
-        formFields[element.name] = element.value;
-      }
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<TimeEntryFormData>({
+    defaultValues: {
+      dateEntry: dateString(),
+      startTime: timeString()
     }
+  });
 
-    const start = Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.startTime}`));
-    const end   = Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.endTime}`));
+  const submitTimeEntry = async (formData: TimeEntryFormData) => {
+    const entry = getLogFromFormFields(formData);
 
-    const entry: ILog = {
-      startTime: start,
-      endTime: end,
-      note: formFields.note,
-      list: DEFAULT_LIST
-    };
-
-    addLog(fBaseContext, entry);
+    try {
+      await addLog(fBaseContext, entry);
+      reset();
+    } catch(err: any) {
+      console.error(`Failed to submit form: ${err.message}`);
+    }
   }
 
   return (
-    <form onSubmit={submitTimeEntry}>
+    <form onSubmit={handleSubmit(submitTimeEntry)}>
       <h2>Add Log Entry</h2>
 
       <label htmlFor='dateEntry'>Date:</label>
-      <input type='date' id='dateEntry' name='dateEntry' defaultValue={dateString()} required />
+      <input type='date' id='dateEntry' {...register('dateEntry', { required: true })} />
+      { errors.dateEntry && <small className='error-msg'>Date is required.</small> }
 
       <label htmlFor='startTime'>Start:</label>
-      <input tabIndex={1} type='time' id='startTime' name='startTime' defaultValue={timeString()} required />
+      <input tabIndex={1} type='time' id='startTime' {...register('startTime', { required: true })} />
+      { errors.startTime && <small className='error-msg'>Start time is required.</small> }
 
       <label htmlFor='note'>Notes:</label>
-      <textarea tabIndex={2} id='note' name='note' required />
+      <textarea tabIndex={2} id='note' {...register('note', { required: true })} />
+      { errors.note && <small className='error-msg'>Note is required.</small> }
 
       <label htmlFor='endTime'>End:</label>
-      <input tabIndex={3} type='time' id='endTime' name='endTime' required />
+      <input tabIndex={3} type='time' id='endTime' {...register('endTime', { required: true })} />
+      { errors.endTime && <small className='error-msg'>End time is required.</small> }
 
       <input tabIndex={5} type='submit' value='Add Entry' />
     </form>
