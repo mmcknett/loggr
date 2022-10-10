@@ -15,8 +15,8 @@ import { IFirebaseContext } from "./FirebaseContext";
 
 export interface ILog {
   id?: string,
-  startTime: Timestamp,
-  endTime: Timestamp,
+  startTime?: Timestamp,
+  endTime?: Timestamp,
   note: string,
   list: string
 }
@@ -76,8 +76,22 @@ export async function deleteLog(fBaseContext: IFirebaseContext, id: string | und
 }
 
 export async function saveDraft(fBaseContext: IFirebaseContext, entry: ILog | null) {
+  if (isNaN(entry?.endTime.seconds)) {
+    delete entry.endTime;
+  }
+
+  if (isNaN(entry?.startTime.seconds)) {
+    delete entry.startTime;
+  }
+
   const uid = checkedUid(fBaseContext);
   const docRef = doc(fBaseContext.db, ACCOUNTS_COLLECTION, uid);
   await setDoc(docRef, { draft: entry }, { merge: true });
   console.log(`Draft saved for user ${uid}`);
+}
+
+export async function loadDraft(fBaseContext: IFirebaseContext): Promise<ILog> {
+  const uid = checkedUid(fBaseContext);
+  const userData = await (await getDoc(doc(fBaseContext.db, ACCOUNTS_COLLECTION, uid))).data();
+  return userData!.draft;
 }

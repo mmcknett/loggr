@@ -1,8 +1,8 @@
 import './App.css'
 import { FirebaseContext } from './FirebaseContext'
 import { app, db, auth } from './database';
-import React, { useContext, useReducer, useState } from 'react';
-import { ILog, DEFAULT_LIST, addLog, useLogs, deleteLog } from './logs-collection';
+import React, { useContext, useEffect, useReducer, useState } from 'react';
+import { ILog, DEFAULT_LIST, addLog, useLogs, deleteLog, saveDraft, loadDraft } from './logs-collection';
 import { Timestamp } from 'firebase/firestore';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useLogin } from './useLogin';
@@ -19,7 +19,7 @@ function App() {
 
   return (
     <FirebaseContext.Provider value={{ app, db, auth }}>
-      <div className="App">
+      <div className='App'>
         {
           currentUser ?
             <>
@@ -40,7 +40,7 @@ function App() {
 }
 
 function twoDig(singleOrDoubleDigit: number | string) {
-  return singleOrDoubleDigit.toString().padStart(2, "0");
+  return singleOrDoubleDigit.toString().padStart(2, '0');
 }
 
 function dateString(date = new Date()) {
@@ -52,10 +52,10 @@ function timeString(date = new Date()) {
 }
 
 type TimeEntryFormData = {
-  dateEntry: string,
-  startTime: string,
-  endTime: string,
-  note: string
+  dateEntry?: string,
+  startTime?: string,
+  endTime?: string,
+  note?: string
 };
 
 function getLogFromFormFields(formFields: TimeEntryFormData) {
@@ -72,14 +72,48 @@ function getLogFromFormFields(formFields: TimeEntryFormData) {
   return entry;
 }
 
+function getFormFieldsFormLog(log: ILog) {
+  const fields: TimeEntryFormData = {
+    startTime: timeString(log.startTime?.toDate()),
+    endTime: timeString(log.endTime?.toDate()),
+    dateEntry: dateString(log.startTime?.toDate()),
+    note: log.note
+  }
+  return fields;
+}
+
 function TimeEntryForm() {
   const fBaseContext = useContext(FirebaseContext)!;
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<TimeEntryFormData>({
+  const { register, handleSubmit, watch, formState: { errors }, reset } = useForm<TimeEntryFormData>({
     defaultValues: {
       dateEntry: dateString(),
       startTime: timeString()
     }
   });
+  const [draftSaved, setDraftSaved] = useState('');
+
+  useEffect(() => {
+    async function loadDraftData() {
+      const draftData = await loadDraft(fBaseContext);
+      console.log('Draft loaded');
+      reset(getFormFieldsFormLog(draftData));
+    }
+    loadDraftData();
+  }, [reset])
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout | undefined;
+    const subscription = watch((formData, { name, type }) => {
+      // A change occurred. Schedule saving a draft in 5 seconds.
+      const entry = getLogFromFormFields(formData);
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(async () => {
+        await saveDraft(fBaseContext, entry);
+        setDraftSaved(`Draft saved at ${new Date().toLocaleTimeString()}`)
+      }, 5000);
+    });
+    return () => subscription.unsubscribe();
+  }, [watch]);
 
   const submitTimeEntry = async (formData: TimeEntryFormData) => {
     const entry = getLogFromFormFields(formData);
@@ -98,21 +132,22 @@ function TimeEntryForm() {
 
       <label htmlFor='dateEntry'>Date:</label>
       <input type='date' id='dateEntry' {...register('dateEntry', { required: true })} />
-      { errors.dateEntry && <small className='error-msg'>Date is required.</small> }
+      { errors.dateEntry && <small className='error-msg' role='alert'>Date is required.</small> }
 
       <label htmlFor='startTime'>Start:</label>
       <input tabIndex={1} type='time' id='startTime' {...register('startTime', { required: true })} />
-      { errors.startTime && <small className='error-msg'>Start time is required.</small> }
+      { errors.startTime && <small className='error-msg' role='alert'>Start time is required.</small> }
 
       <label htmlFor='note'>Notes:</label>
       <textarea tabIndex={2} id='note' {...register('note', { required: true })} />
-      { errors.note && <small className='error-msg'>Note is required.</small> }
+      { errors.note && <small className='error-msg' role='alert'>Note is required.</small> }
 
       <label htmlFor='endTime'>End:</label>
       <input tabIndex={3} type='time' id='endTime' {...register('endTime', { required: true })} />
-      { errors.endTime && <small className='error-msg'>End time is required.</small> }
+      { errors.endTime && <small className='error-msg' role='alert'>End time is required.</small> }
 
-      <input tabIndex={5} type='submit' value='Add Entry' />
+      <button tabIndex={5} type='submit'>Add Entry</button>
+      { draftSaved && <em>Last saved {draftSaved}</em>}
     </form>
   );
 }
@@ -222,7 +257,7 @@ function LoginForm() {
       <input autoComplete='username' type='email' id='email' name='email' value={state.email} onChange={handleChange} />
 
       <label htmlFor='password'>Password:</label>
-      <input autoComplete="current-password" type='password' id='password' name='password' value={state.password} onChange={handleChange} />
+      <input autoComplete='current-password' type='password' id='password' name='password' value={state.password} onChange={handleChange} />
 
       <input type='submit' value='Log In' />
       { state.lastError && <div style={{color: 'red' }}>{ state.lastError }</div> }
