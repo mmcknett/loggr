@@ -2,12 +2,14 @@ import {
   addDoc,
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   onSnapshot,
   query,
   setDoc,
   Timestamp,
+  updateDoc,
   where
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
@@ -19,6 +21,11 @@ export interface ILog {
   endTime?: Timestamp,
   note: string,
   list: string
+}
+
+export interface ILogDraft {
+  log: ILog,
+  savedTime: Timestamp
 }
 
 export const DEFAULT_LIST = 'main';
@@ -58,9 +65,13 @@ export function useLogs(fBaseContext: IFirebaseContext, listName: string = DEFAU
 }
 
 export async function addLog(fBaseContext: IFirebaseContext, entry: ILog) {
-  // Transaction: Add doc and delete draft
-  const docRef = await addDoc(collection(fBaseContext.db, checkedLogPath(fBaseContext)), entry);
-  console.log(`Added an entry to ${entry.list}, id: ${docRef.id}`);
+  try {
+    const docRef = await addDoc(collection(fBaseContext.db, checkedLogPath(fBaseContext)), entry);
+    await deleteDraft(fBaseContext);
+    console.log(`Added an entry to ${entry.list}, id: ${docRef.id}`);
+  } catch(err: any) {
+    console.error(`Failed to add an entry to ${entry.list}. Message: ${err.message}`);
+  }
 }
 
 export async function deleteLog(fBaseContext: IFirebaseContext, id: string | undefined, description: string = 'this item') {
@@ -75,22 +86,39 @@ export async function deleteLog(fBaseContext: IFirebaseContext, id: string | und
   }
 }
 
-export async function saveDraft(fBaseContext: IFirebaseContext, entry: ILog | null) {
-  if (isNaN(entry?.endTime.seconds)) {
+export async function deleteDraft(fBaseContext: IFirebaseContext) {
+  const uid = checkedUid(fBaseContext);
+  const docRef = doc(fBaseContext.db, ACCOUNTS_COLLECTION, uid);
+  try {
+    await updateDoc(docRef, { draft: deleteField() });
+    console.log(`Draft deleted for user ${uid}`);
+  } catch(err: any) {
+    console.error(`Unable to delete draft for user ${uid}. Message: ${err.message}`);
+  }
+}
+
+export async function saveDraft(fBaseContext: IFirebaseContext, entry: ILog) {
+  // If the timestamps have NaN in them, just delete the fields before saving.
+  if (entry?.endTime && isNaN(entry.endTime.seconds)) {
     delete entry.endTime;
   }
 
-  if (isNaN(entry?.startTime.seconds)) {
+  if (entry?.startTime && isNaN(entry.startTime.seconds)) {
     delete entry.startTime;
+  }
+
+  const draft: ILogDraft = {
+    log: entry,
+    savedTime: Timestamp.now()
   }
 
   const uid = checkedUid(fBaseContext);
   const docRef = doc(fBaseContext.db, ACCOUNTS_COLLECTION, uid);
-  await setDoc(docRef, { draft: entry }, { merge: true });
+  await setDoc(docRef, { draft }, { merge: true });
   console.log(`Draft saved for user ${uid}`);
 }
 
-export async function loadDraft(fBaseContext: IFirebaseContext): Promise<ILog> {
+export async function loadDraft(fBaseContext: IFirebaseContext): Promise<ILogDraft> {
   const uid = checkedUid(fBaseContext);
   const userData = await (await getDoc(doc(fBaseContext.db, ACCOUNTS_COLLECTION, uid))).data();
   return userData!.draft;

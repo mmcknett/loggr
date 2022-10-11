@@ -2,15 +2,15 @@ import './App.css'
 import { FirebaseContext } from './FirebaseContext'
 import { app, db, auth } from './database';
 import React, { useContext, useEffect, useReducer, useState } from 'react';
-import { ILog, DEFAULT_LIST, addLog, useLogs, deleteLog, saveDraft, loadDraft } from './logs-collection';
+import { ILog, DEFAULT_LIST, addLog, useLogs, deleteLog, saveDraft, loadDraft, deleteDraft } from './logs-collection';
 import { Timestamp } from 'firebase/firestore';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useLogin } from './useLogin';
 import { useForm } from 'react-hook-form';
 
 // 0. [x] Logs stored per user
-// 1. [ ] As things are typed, a draft is saved.
-// 2. [ ] Retrieve the latest draft on load.
+// 1. [x] As things are typed, a draft is saved.
+// 2. [x] Retrieve the latest draft on load.
 // 3. [ ] Clear button deletes draft (with yes/no confirmation)
 // 4. [ ] Separate page to see log entries
 // 5. [ ] Filtering by log (log is just a string naming the log.)
@@ -77,7 +77,7 @@ function getFormFieldsFormLog(log: ILog) {
     startTime: timeString(log.startTime?.toDate()),
     endTime: timeString(log.endTime?.toDate()),
     dateEntry: dateString(log.startTime?.toDate()),
-    note: log.note
+    note: log.note || ''
   }
   return fields;
 }
@@ -90,30 +90,39 @@ function TimeEntryForm() {
       startTime: timeString()
     }
   });
-  const [draftSaved, setDraftSaved] = useState('');
-
-  useEffect(() => {
-    async function loadDraftData() {
-      const draftData = await loadDraft(fBaseContext);
-      console.log('Draft loaded');
-      reset(getFormFieldsFormLog(draftData));
-    }
-    loadDraftData();
-  }, [reset])
+  const [draftSaved, setDraftSaved] = useState('never');
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | undefined;
-    const subscription = watch((formData, { name, type }) => {
+    const subscription = watch((formData, { name: fieldName }) => {
       // A change occurred. Schedule saving a draft in 5 seconds.
-      const entry = getLogFromFormFields(formData);
       clearTimeout(timeoutId);
+
+      if (!fieldName) {
+        // Don't schedule a draft save if this isn't the result of a field being changed.
+        return;
+      }
+
+      const entry = getLogFromFormFields(formData);
       timeoutId = setTimeout(async () => {
         await saveDraft(fBaseContext, entry);
-        setDraftSaved(`Draft saved at ${new Date().toLocaleTimeString()}`)
+        setDraftSaved(`at ${new Date().toLocaleTimeString()}`)
       }, 5000);
     });
     return () => subscription.unsubscribe();
   }, [watch]);
+
+  useEffect(() => {
+    async function loadDraftData() {
+      const draft = await loadDraft(fBaseContext);
+      if (draft) {
+        console.log('Draft loaded');
+        reset(getFormFieldsFormLog(draft.log));
+        setDraftSaved(`at ${draft.savedTime.toDate().toLocaleString()}`);
+      }
+    }
+    loadDraftData();
+  }, [reset]);
 
   const submitTimeEntry = async (formData: TimeEntryFormData) => {
     const entry = getLogFromFormFields(formData);
@@ -121,9 +130,15 @@ function TimeEntryForm() {
     try {
       await addLog(fBaseContext, entry);
       reset();
+      setDraftSaved('');
     } catch(err: any) {
       console.error(`Failed to submit form: ${err.message}`);
     }
+  }
+
+  const handleDraftDelete = () => {
+    deleteDraft(fBaseContext);
+    setDraftSaved('never');
   }
 
   return (
@@ -146,8 +161,12 @@ function TimeEntryForm() {
       <input tabIndex={3} type='time' id='endTime' {...register('endTime', { required: true })} />
       { errors.endTime && <small className='error-msg' role='alert'>End time is required.</small> }
 
-      <button tabIndex={5} type='submit'>Add Entry</button>
-      { draftSaved && <em>Last saved {draftSaved}</em>}
+      { draftSaved && <em className='notification'>Draft last saved {draftSaved}</em>}
+
+      <div id='submit-row' className='horiz'>
+        <button tabIndex={5} type='submit'>Add Entry</button>
+        <button type='reset' onClick={handleDraftDelete}>Delete Draft</button>
+      </div>
     </form>
   );
 }

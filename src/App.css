@@ -56,13 +56,6 @@ input + label, textarea + label {
   margin-top: 1rem;
 }
 
-button[type="submit"] {
-  font-size: 2vh;
-  margin-top: 2rem;
-  padding: 0.5em;
-  margin-bottom: 4rem;
-}
-
 .delete-button {
   padding: 0.5em;
   font-size: 0.8em;
@@ -83,6 +76,27 @@ input, textarea {
   max-width: 60rem;
   padding: 1em;
   font-size: 0.75em;
+}
+
+#submit-row {
+  font-size: 2vh;
+  margin-top: 2rem;
+  margin-bottom: 4rem;
+}
+
+.horiz {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.horiz > * {
+  margin-right: 1em;
+}
+
+.notification {
+  font-size: 0.7em;
+  margin-top: 0.5em;
 }
 
 
