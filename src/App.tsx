@@ -16,23 +16,26 @@ import { useForm } from 'react-hook-form';
 // 5. [ ] Filtering by log (log is just a string naming the log.)
 function App() {
   const currentUser = useLogin(auth);
+  const loading = currentUser === null;
 
   return (
     <FirebaseContext.Provider value={{ app, db, auth }}>
       <div className='App'>
         {
-          currentUser ?
-            <>
-            <div className='nav-bar'>
-              { currentUser }
-              <span className='vl'/>
-              <LogoutButton />
-            </div>
-            <TimeEntryForm />
-            <LogTable />
-            </>
-          :
-            <LoginForm />
+          loading ? 
+            'Loading...' :
+            currentUser ? 
+              <>
+              <div className='nav-bar'>
+                { currentUser }
+                <span className='vl'/>
+                <LogoutButton />
+              </div>
+              <TimeEntryForm />
+              <LogTable />
+              </>
+            :
+              <LoginForm />
         }
       </div>
     </FirebaseContext.Provider>
@@ -187,22 +190,24 @@ function LogTable() {
       </thead>
       <tbody>
       {
-        logs.map((log: ILog) => (
-          <tr key={log.id}>
-            <td className='small-time'>
-              { log.startTime.toDate().toLocaleString() }
-              <br/>
-              { log.endTime.toDate().toLocaleString() }
-            </td>
-            <td>{ log.list }</td>
-            <td><p className='note-display'>{ log.note }</p></td>
-            <td>
-              <button className='delete-button' onClick={() => deleteLog(fBaseContext, log.id, `the entry from ${log.startTime.toDate().toLocaleDateString()}`)}>
-              ❌
-              </button>
-            </td>
-          </tr>
-        ))
+        logs ?
+          logs.map((log: ILog) => (
+            <tr key={log.id}>
+              <td className='small-time'>
+                { log.startTime.toDate().toLocaleString() }
+                <br/>
+                { log.endTime.toDate().toLocaleString() }
+              </td>
+              <td>{ log.list }</td>
+              <td><p className='note-display'>{ log.note }</p></td>
+              <td>
+                <button className='delete-button' onClick={() => deleteLog(fBaseContext, log.id, `the entry from ${log.startTime.toDate().toLocaleDateString()}`)}>
+                ❌
+                </button>
+              </td>
+            </tr>
+          ))
+          : <tr><td rowSpan={4}>No Data</td></tr>
       }
       </tbody>
     </table>

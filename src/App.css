@@ -72,7 +72,7 @@ input, textarea {
 
 #note {
   height: 40vh;
-  width: 80vw;
+  align-self: stretch;
   max-width: 60rem;
   padding: 1em;
   font-size: 0.75em;

@@ -48,7 +48,7 @@ const checkedLogPath = (fBaseContext: IFirebaseContext) => {
 }
 
 export function useLogs(fBaseContext: IFirebaseContext, listName: string = DEFAULT_LIST) {
-  const [logs, setLogs] = useState<ILog[]>([]);
+  const [logs, setLogs] = useState<ILog[] | null>(null);
 
   useEffect(() => {
     const q = query(collection(fBaseContext.db, checkedLogPath(fBaseContext)), where("list", "==", listName));
