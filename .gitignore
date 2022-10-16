@@ -25,3 +25,6 @@ dist-ssr
 
 # secrets
 .env
+
+# Firestore emulator directories
+fs-dev-stash

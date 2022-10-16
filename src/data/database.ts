@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 // Firebase configuration: Firebase API key and app IDs are not secret.
@@ -15,7 +15,14 @@ const firebaseConfig = {
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 
-
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
+
+// In dev mode, when prod firestore is not specifically selected, connect to the emulator.
+// Use vite's statically-replaced env variables/modes: https://vitejs.dev/guide/env-and-mode.html#modes
+if (import.meta.env.DEV && import.meta.env.MODE !== 'prodfirestore') {
+  connectFirestoreEmulator(db, 'localhost', 8080);
+}
+
+// Initialize the firebase auth service.
 export const auth = getAuth(app);
