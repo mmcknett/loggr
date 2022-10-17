@@ -17,6 +17,7 @@ function timeString(date = new Date()) {
 type TimeEntryFormData = {
   dateEntry?: string;
   startTime?: string;
+  list?: string;
   endTime?: string;
   note?: string;
 };
@@ -28,7 +29,7 @@ function getLogFromFormFields(formFields: TimeEntryFormData) {
     startTime: start,
     endTime: end,
     note: formFields.note || '',
-    list: DEFAULT_LIST
+    list: formFields.list || DEFAULT_LIST
   };
 
   return entry;
@@ -38,7 +39,8 @@ function getFormFieldsFormLog(log: ILog) {
     startTime: timeString(log.startTime?.toDate()),
     endTime: timeString(log.endTime?.toDate()),
     dateEntry: dateString(log.startTime?.toDate()),
-    note: log.note || ''
+    note: log.note || '',
+    list: log.list || ''
   };
   return fields;
 }
@@ -112,6 +114,14 @@ export function TimeEntryForm() {
       <label htmlFor='startTime'>Start:</label>
       <input tabIndex={1} type='time' id='startTime' {...register('startTime', { required: true })} />
       {errors.startTime && <small className='error-msg' role='alert'>Start time is required.</small>}
+
+      <label htmlFor='list'>List:</label>
+      <input list='lists' {...register('list', { required: true })} />
+      <datalist id='lists'>
+        <option value='Main' />
+        <option value='TA Hours' />
+        <option value='Interviewing' />
+      </datalist>
 
       <label htmlFor='note'>Notes:</label>
       <textarea tabIndex={2} id='note' {...register('note', { required: true })} />

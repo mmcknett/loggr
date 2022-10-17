@@ -28,7 +28,7 @@ export interface ILogDraft {
   savedTime: Timestamp
 }
 
-export const DEFAULT_LIST = 'main';
+export const DEFAULT_LIST = 'Main';
 const LOGS_COLLECTION = 'logs';
 const ACCOUNTS_COLLECTION = 'accounts';
 
@@ -47,11 +47,12 @@ const checkedLogPath = (fBaseContext: IFirebaseContext) => {
   return logPath(uid);
 }
 
-export function useLogs(fBaseContext: IFirebaseContext, listName: string = DEFAULT_LIST) {
+export function useLogs(fBaseContext: IFirebaseContext, listName: string /*= DEFAULT_LIST*/) {
   const [logs, setLogs] = useState<ILog[] | null>(null);
 
   useEffect(() => {
-    const q = query(collection(fBaseContext.db, checkedLogPath(fBaseContext)), where("list", "==", listName));
+    // TODO: Bring back list filtering, but don't default to "Main"
+    const q = query(collection(fBaseContext.db, checkedLogPath(fBaseContext))); //, where("list", "==", listName));
     const unsub = onSnapshot(q, (querySnapshot) => {
       // const source = doc.metadata.hasPendingWrites ? "Local" : "Server";
       setLogs(querySnapshot.docs.map(queryDocSnapshot => (

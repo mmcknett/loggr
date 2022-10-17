@@ -52,7 +52,7 @@ input {
   border: unset;
 }
 
-input + label, textarea + label {
+input + label, textarea + label, datalist + label {
   margin-top: 1rem;
 }
 
