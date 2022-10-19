@@ -47,8 +47,9 @@ const checkedLogPath = (fBaseContext: IFirebaseContext) => {
   return logPath(uid);
 }
 
-export function useLogs(fBaseContext: IFirebaseContext, listName: string /*= DEFAULT_LIST*/) {
+export function useLogs(fBaseContext: IFirebaseContext, listName: string = DEFAULT_LIST) {
   const [logs, setLogs] = useState<ILog[] | null>(null);
+  const [lists, setLists] = useState<string[]>([]);
 
   useEffect(() => {
     // TODO: Bring back list filtering, but don't default to "Main"
@@ -62,7 +63,19 @@ export function useLogs(fBaseContext: IFirebaseContext, listName: string /*= DEF
     return unsub;
   }, [listName]);
 
-  return logs;
+  // Discover any new lists from the updated log data.
+  // Use sets to determine if there are new list items so that we can call setLists.
+  const newListSet = new Set(logs?.map(log => log.list));
+  const diff = new Set(lists);
+
+  // Modified symmetric set difference algorithm from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
+  newListSet.forEach(itemNew => diff.has(itemNew) ? diff.delete(itemNew) : diff.add(itemNew));
+
+  if (diff.size !== 0) {
+    setLists(Array.from(newListSet.keys()));
+  }
+
+  return { logs, lists };
 }
 
 export async function addLog(fBaseContext: IFirebaseContext, entry: ILog) {

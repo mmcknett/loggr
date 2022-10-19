@@ -1,10 +1,10 @@
 import { FirebaseContext } from '../data/FirebaseContext';
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { ILog, useLogs, deleteLog } from '../data/logs-collection';
 
 export function LogTable() {
   const fBaseContext = useContext(FirebaseContext)!;
-  const logs = useLogs(fBaseContext);
+  const { logs } = useLogs(fBaseContext);
 
   return (
     <table>

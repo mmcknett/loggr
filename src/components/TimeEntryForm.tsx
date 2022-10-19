@@ -1,6 +1,6 @@
 import { FirebaseContext } from '../data/FirebaseContext';
-import React, { useContext, useEffect, useState } from 'react';
-import { ILog, DEFAULT_LIST, addLog, saveDraft, loadDraft, deleteDraft } from '../data/logs-collection';
+import { useContext, useEffect, useState } from 'react';
+import { ILog, DEFAULT_LIST, addLog, saveDraft, loadDraft, deleteDraft, useLogs } from '../data/logs-collection';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 
@@ -53,6 +53,8 @@ export function TimeEntryForm() {
     }
   });
   const [draftSaved, setDraftSaved] = useState('never');
+
+  const { lists } = useLogs(fBaseContext);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | undefined;
@@ -116,11 +118,9 @@ export function TimeEntryForm() {
       {errors.startTime && <small className='error-msg' role='alert'>Start time is required.</small>}
 
       <label htmlFor='list'>List:</label>
-      <input list='lists' {...register('list', { required: true })} />
+      <input list='lists'  autoComplete='off' {...register('list', { required: true })} />
       <datalist id='lists'>
-        <option value='Main' />
-        <option value='TA Hours' />
-        <option value='Interviewing' />
+        { lists.map(listName => <option key={ listName } value={ listName } />) }
       </datalist>
 
       <label htmlFor='note'>Notes:</label>
