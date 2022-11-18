@@ -1,8 +1,11 @@
 import { FirebaseContext } from '../data/FirebaseContext';
-import { useContext, useEffect, useState } from 'react';
-import { ILog, DEFAULT_LIST, addLog, saveDraft, loadDraft, deleteDraft, useLogs } from '../data/logs-collection';
+import { useContext, useEffect, useState, MouseEvent } from 'react';
+import { ILog, DEFAULT_LIST, addLog, saveDraft, loadDraft, deleteDraft, useLogs, useAccount } from '../data/logs-collection';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
+
+const DRAFT_SAVE_SPEED = 5000; // Save a draft on changes after 5 seconds.
+// const DRAFT_SAVE_SPEED = 1000; // DEBUG: Save a draft on changes after a second.
 
 export function twoDig(singleOrDoubleDigit: number | string) {
   return singleOrDoubleDigit.toString().padStart(2, '0');
@@ -14,6 +17,7 @@ function dateString(date = new Date()) {
 function timeString(date = new Date()) {
   return `${twoDig(date.getHours())}:${twoDig(date.getMinutes())}`;
 }
+
 type TimeEntryFormData = {
   dateEntry?: string;
   startTime?: string;
@@ -21,89 +25,120 @@ type TimeEntryFormData = {
   endTime?: string;
   note?: string;
 };
-function getLogFromFormFields(formFields: TimeEntryFormData) {
-  const start = Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.startTime}`));
-  const end = Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.endTime}`));
+
+function getLogFromFormFields(formFields: TimeEntryFormData, recentList?: string, allowEmptyList: boolean = true) {
+  const start = formFields.startTime && Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.startTime}`));
+  const end = formFields.endTime && Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.endTime}`));
+  
+  // If the list exists and it's not empty or empty lists are allowed, use the list.
+  // Otherwise, pick the recent list or the default list.
+  let list = formFields.list || '';
+  if (list === '' && !allowEmptyList) {
+    list = recentList || DEFAULT_LIST;
+  }
 
   const entry: ILog = {
-    startTime: start,
-    endTime: end,
+    ...(start && {startTime: start}),
+    ...(end && {endTime: end}),
     note: formFields.note || '',
-    list: formFields.list || DEFAULT_LIST
+    list
   };
 
   return entry;
 }
-function getFormFieldsFormLog(log: ILog) {
+
+function getFormFieldsFromLog(log?: ILog) {
+  if (!log) {
+    return {};
+  }
+  
   const fields: TimeEntryFormData = {
-    startTime: timeString(log.startTime?.toDate()),
-    endTime: timeString(log.endTime?.toDate()),
-    dateEntry: dateString(log.startTime?.toDate()),
-    note: log.note || '',
-    list: log.list || ''
+    ...(log?.startTime && { startTime: timeString(log!.startTime!.toDate()) }),
+    ...(log?.endTime && { endTime: timeString(log!.endTime!.toDate()) }),
+    ...(log?.startTime && { dateEntry: dateString(log!.startTime!.toDate()) }),
+    note: log?.note || '',
+    list: log?.list || ''
   };
   return fields;
 }
+
+function makeDefaultFormValues(recentList?: string, log?: ILog) {
+  return {
+    dateEntry: dateString(),
+    startTime: timeString(),
+    ...getFormFieldsFromLog(log)
+  };
+}
+
 export function TimeEntryForm() {
   const fBaseContext = useContext(FirebaseContext)!;
-  const { register, handleSubmit, watch, formState: { errors }, reset } = useForm<TimeEntryFormData>({
-    defaultValues: {
-      dateEntry: dateString(),
-      startTime: timeString()
-    }
-  });
-  const [draftSaved, setDraftSaved] = useState('never');
 
+  const account = useAccount(fBaseContext);
+  const { draft, recentList } = account;
   const { lists } = useLogs(fBaseContext);
+
+  const draftSaved = draft?.savedTime?.toDate().toLocaleString() || '';
+
+  const { register, handleSubmit, watch, formState: { errors }, reset: useFormReset } = useForm<TimeEntryFormData>({
+    defaultValues: makeDefaultFormValues(recentList, draft?.log)
+  });
+
+  const reset = (evt?: MouseEvent<HTMLButtonElement>) => {
+    evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
+    useFormReset(makeDefaultFormValues(recentList, draft?.log));
+  };
+
+  useEffect(() => {
+    // Draft has changed and has data, so reset.
+    if (draft) {
+      reset();
+    } else {
+      const defaultVals = makeDefaultFormValues(undefined, { note: '', list: '' });
+      defaultVals.endTime = '';
+      useFormReset(defaultVals);
+    }
+  }, [draft]);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | undefined;
     const subscription = watch((formData, { name: fieldName }) => {
-      // A change occurred. Schedule saving a draft in 5 seconds.
-      clearTimeout(timeoutId);
-
       if (!fieldName) {
         // Don't schedule a draft save if this isn't the result of a field being changed.
         return;
       }
 
+      // A change occurred. Schedule saving a draft.
+      clearTimeout(timeoutId);
+
+      // When creating a draft, don't save the list if it's a default or most-recent list.
+      // We only want to track the default or most-recently-used list when actually
+      // committing the log entry.
       const entry = getLogFromFormFields(formData);
       timeoutId = setTimeout(async () => {
         await saveDraft(fBaseContext, entry);
-        setDraftSaved(`at ${new Date().toLocaleTimeString()}`);
-      }, 5000);
+      }, DRAFT_SAVE_SPEED);
     });
     return () => subscription.unsubscribe();
   }, [watch]);
 
-  useEffect(() => {
-    async function loadDraftData() {
-      const draft = await loadDraft(fBaseContext);
-      if (draft) {
-        console.log('Draft loaded');
-        reset(getFormFieldsFormLog(draft.log));
-        setDraftSaved(`at ${draft.savedTime.toDate().toLocaleString()}`);
-      }
-    }
-    loadDraftData();
-  }, [reset]);
-
   const submitTimeEntry = async (formData: TimeEntryFormData) => {
-    const entry = getLogFromFormFields(formData);
+    // When saving a log, supply the most-recent list for use when saving.
+    const entry = getLogFromFormFields(formData, recentList, false /*allowEmptyList*/);
 
     try {
       await addLog(fBaseContext, entry);
       reset();
-      setDraftSaved('');
     } catch (err: any) {
       console.error(`Failed to submit form: ${err.message}`);
     }
   };
 
-  const handleDraftDelete = () => {
+  const handleDraftDelete = (evt?: MouseEvent<HTMLButtonElement>) => {
+    evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
     deleteDraft(fBaseContext);
-    setDraftSaved('never');
   };
+
+  const defaultPlaceholder = recentList ? `${recentList} (last used)` : `${DEFAULT_LIST} (default)`;
 
   return (
     <form onSubmit={handleSubmit(submitTimeEntry)}>
@@ -118,7 +153,7 @@ export function TimeEntryForm() {
       {errors.startTime && <small className='error-msg' role='alert'>Start time is required.</small>}
 
       <label htmlFor='list'>List:</label>
-      <input list='lists'  autoComplete='off' {...register('list', { required: true })} />
+      <input list='lists' autoComplete='off' placeholder={defaultPlaceholder} {...register('list')} />
       <datalist id='lists'>
         { lists.map(listName => <option key={ listName } value={ listName } />) }
       </datalist>
