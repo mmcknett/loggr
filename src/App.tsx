@@ -10,14 +10,11 @@ import { NavBar } from './components/NavBar';
 
 export default function App() {
   const currentUser = useLogin(auth);
-  const loading = currentUser === null;
 
   return (
     <FirebaseContext.Provider value={{ app, db, auth }}>
       <div className='App'>
         {
-          loading ? 
-            'Loading...' :
             currentUser ? 
               <>
               <NavBar />
