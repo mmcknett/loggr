@@ -21,14 +21,14 @@ export function LogTable() {
           logs.map((log: ILog) => (
             <tr key={log.id}>
               <td className='small-time'>
-                {log.startTime.toDate().toLocaleString()}
+                {log.startTime?.toDate().toLocaleString()}
                 <br />
-                {log.endTime.toDate().toLocaleString()}
+                {log.endTime?.toDate().toLocaleString()}
               </td>
               <td>{log.list}</td>
               <td><p className='note-display'>{log.note}</p></td>
               <td>
-                <button className='delete-button' onClick={() => deleteLog(fBaseContext, log.id, `the entry from ${log.startTime.toDate().toLocaleDateString()}`)}>
+                <button className='delete-button' onClick={() => deleteLog(fBaseContext, log.id, `the entry from ${log.startTime?.toDate().toLocaleDateString()}`)}>
                   ❌
                 </button>
               </td>
