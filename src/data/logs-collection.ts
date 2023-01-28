@@ -4,7 +4,6 @@ import {
   deleteDoc,
   deleteField,
   doc,
-  getDoc,
   onSnapshot,
   query,
   setDoc,
@@ -157,10 +156,4 @@ export function useAccount(fBaseContext: IFirebaseContext) {
   }, [fBaseContext]);
 
   return account;
-}
-
-export async function loadDraft(fBaseContext: IFirebaseContext): Promise<ILogDraft> {
-  const uid = checkedUid(fBaseContext);
-  const userData = await (await getDoc(doc(fBaseContext.db, ACCOUNTS_COLLECTION, uid))).data();
-  return userData!.draft;
 }
