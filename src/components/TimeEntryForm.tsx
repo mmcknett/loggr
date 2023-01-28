@@ -1,5 +1,5 @@
 import { FirebaseContext } from '../data/FirebaseContext';
-import { useContext, useEffect, MouseEvent } from 'react';
+import { useContext, useEffect, MouseEvent, useRef, MutableRefObject } from 'react';
 import { ILog, DEFAULT_LIST, addLog, saveDraft, deleteDraft, useLogs, useAccount } from '../data/logs-collection';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
@@ -99,22 +99,29 @@ export function TimeEntryForm() {
     }
   }, [draft]);
 
+  const draftSaveTimeoutRef: MutableRefObject<number | null> = useRef(null);
+  const cancelDraftSave = () => {
+    if (typeof draftSaveTimeoutRef.current === 'number') {
+      window.clearTimeout(draftSaveTimeoutRef.current);
+    }
+  }
+
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout | undefined;
     const subscription = watch((formData, { name: fieldName }) => {
+      // If a change occurred, schedule saving a draft. Cancel any pending draft saves.
       if (!fieldName) {
         // Don't schedule a draft save if this isn't the result of a field being changed.
         return;
       }
 
-      // A change occurred. Schedule saving a draft.
-      clearTimeout(timeoutId);
+      // Cancel any previous saves.
+      cancelDraftSave();
 
       // When creating a draft, don't save the list if it's a default or most-recent list.
       // We only want to track the default or most-recently-used list when actually
       // committing the log entry.
       const entry = getLogFromFormFields(formData);
-      timeoutId = setTimeout(async () => {
+      draftSaveTimeoutRef.current = window.setTimeout(async () => {
         await saveDraft(fBaseContext, entry);
       }, DRAFT_SAVE_SPEED);
     });
@@ -127,6 +134,7 @@ export function TimeEntryForm() {
 
     try {
       await addLog(fBaseContext, entry);
+      cancelDraftSave(); // Stop any in-progress drafts from saving, now that the log is stored successfully.
       reset();
     } catch (err: any) {
       console.error(`Failed to submit form: ${err.message}`);
