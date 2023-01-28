@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently --names \"emu,vite\" -c \"magenta,blue\" --prefix \"[{name}]\" \"npm:dev:emulators\" \"npm:dev:vite\"",
     "dev:vite": "vite",
-    "dev:emulators": "firebase emulators:start --import=./fs-dev-stash --export-on-exit=./fs-dev-stash",
+    "dev:emulators": "firebase emulators:start --only firestore --import=./fs-dev-stash --export-on-exit=./fs-dev-stash",
     "dev:real-db": "vite --mode prodfirestore",
     "build": "tsc && vite build",
     "preview": "vite preview",
