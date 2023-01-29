@@ -48,13 +48,13 @@ function getLogFromFormFields(formFields: TimeEntryFormData, recentList?: string
 }
 
 function getFormFieldsFromLog(log?: ILog) {
-  if (!log) {
-    return {};
-  }
+  // if (!log) {
+  //   return {};
+  // }
   
   const fields: TimeEntryFormData = {
     ...(log?.startTime && { startTime: timeString(log!.startTime!.toDate()) }),
-    ...(log?.endTime && { endTime: timeString(log!.endTime!.toDate()) }),
+    ...(log?.endTime && { endTime: timeString(log!.endTime!.toDate()) } || { endTime: '' }),
     ...(log?.startTime && { dateEntry: dateString(log!.startTime!.toDate()) }),
     note: log?.note || '',
     list: log?.list || ''
