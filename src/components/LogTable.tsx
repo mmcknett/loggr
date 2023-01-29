@@ -17,7 +17,7 @@ export function LogTable() {
         </tr>
       </thead>
       <tbody>
-        {logs ?
+        {logs && logs.length > 0 ?
           logs.map((log: ILog) => (
             <tr key={log.id}>
               <td className='small-time'>
@@ -34,7 +34,7 @@ export function LogTable() {
               </td>
             </tr>
           ))
-          : <tr><td rowSpan={4}>No Data</td></tr>}
+          : <tr><td colSpan={4}>No Data</td></tr>}
       </tbody>
     </table>
   );
