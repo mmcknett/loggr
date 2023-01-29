@@ -76,7 +76,8 @@ export function TimeEntryForm() {
   const draftSaved = draft?.savedTime?.toDate().toLocaleString() || '';
 
   const { register, handleSubmit, watch, formState: { errors }, reset: useFormReset } = useForm<TimeEntryFormData>({
-    defaultValues: makeDefaultFormValues(recentList, draft?.log)
+    defaultValues: makeDefaultFormValues(recentList, draft?.log),
+    values: getFormFieldsFromLog(draft?.log)
   });
 
   const reset = (evt?: MouseEvent<HTMLButtonElement>) => {
