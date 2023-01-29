@@ -1,5 +1,5 @@
 import { FirebaseContext } from '../data/FirebaseContext';
-import { useContext, useEffect, MouseEvent, useRef, MutableRefObject } from 'react';
+import { useContext, useEffect, MouseEvent, useRef, MutableRefObject, useCallback } from 'react';
 import { ILog, DEFAULT_LIST, addLog, saveDraft, deleteDraft, useLogs, useAccount } from '../data/logs-collection';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
@@ -80,10 +80,13 @@ export function TimeEntryForm() {
     values: getFormFieldsFromLog(draft?.log)
   });
 
-  const reset = (evt?: MouseEvent<HTMLButtonElement>) => {
-    evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
-    useFormReset(makeDefaultFormValues(recentList, draft?.log));
-  };
+  const reset = useCallback(
+    (evt?: MouseEvent<HTMLButtonElement>) => {
+      evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
+      useFormReset(makeDefaultFormValues(recentList, draft?.log));
+    },
+    [draft, recentList, useFormReset]
+  );
 
   useEffect(() => {
     // Draft has changed and has data, so reset.
@@ -94,7 +97,7 @@ export function TimeEntryForm() {
       defaultVals.endTime = '';
       useFormReset(defaultVals);
     }
-  }, [draft]);
+  }, [draft, reset, useFormReset]);
 
   const draftSaveTimeoutRef: MutableRefObject<number | null> = useRef(null);
   const cancelDraftSave = () => {
@@ -125,19 +128,22 @@ export function TimeEntryForm() {
     return () => subscription.unsubscribe();
   }, [watch]);
 
-  const submitTimeEntry = async (formData: TimeEntryFormData) => {
-    // When saving a log, supply the most-recent list for use when saving.
-    const entry = getLogFromFormFields(formData, recentList, false /*allowEmptyList*/);
+  const submitTimeEntry = useCallback(
+    async (formData: TimeEntryFormData) => {
+      // When saving a log, supply the most-recent list for use when saving.
+      const entry = getLogFromFormFields(formData, recentList, false /*allowEmptyList*/);
 
-    cancelDraftSave(); // Stop any in-progress drafts from saving so we don't stomp the form state with it.
+      cancelDraftSave(); // Stop any in-progress drafts from saving so we don't stomp the form state with it.
 
-    try {
-      await addLog(fBaseContext, entry);
-      reset();
-    } catch (err: any) {
-      console.error(`Failed to submit form: ${err.message}`);
-    }
-  };
+      try {
+        await addLog(fBaseContext, entry);
+        reset();
+      } catch (err: any) {
+        console.error(`Failed to submit form: ${err.message}`);
+      }
+    },
+    [reset, cancelDraftSave, getLogFromFormFields, addLog]
+  );
 
   const handleDraftDelete = (evt?: MouseEvent<HTMLButtonElement>) => {
     evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
