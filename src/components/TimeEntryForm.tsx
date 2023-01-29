@@ -132,9 +132,10 @@ export function TimeEntryForm() {
     // When saving a log, supply the most-recent list for use when saving.
     const entry = getLogFromFormFields(formData, recentList, false /*allowEmptyList*/);
 
+    cancelDraftSave(); // Stop any in-progress drafts from saving so we don't stomp the form state with it.
+
     try {
       await addLog(fBaseContext, entry);
-      cancelDraftSave(); // Stop any in-progress drafts from saving, now that the log is stored successfully.
       reset();
     } catch (err: any) {
       console.error(`Failed to submit form: ${err.message}`);
