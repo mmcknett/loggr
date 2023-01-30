@@ -84,13 +84,10 @@ export function TimeEntryForm() {
     values: getFormFieldsFromLog(draft?.log)
   });
 
-  const reset = useCallback(
-    (evt?: MouseEvent<HTMLButtonElement>) => {
+  const reset = (evt?: MouseEvent<HTMLButtonElement>) => {
       evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
       useFormReset(makeDefaultFormValues(draft?.log));
-    },
-    [draft, useFormReset]
-  );
+    };
 
   useEffect(() => {
     // Draft has changed and has data, so reset.
@@ -100,7 +97,7 @@ export function TimeEntryForm() {
       const defaultVals = makeDefaultFormValues();
       useFormReset(defaultVals);
     }
-  }, [draft, reset, useFormReset]);
+  }, [draft, useFormReset]);
 
   const draftSaveTimeoutRef: MutableRefObject<number | null> = useRef(null);
   const cancelDraftSave = () => {
