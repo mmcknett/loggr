@@ -4,8 +4,9 @@ import { ILog, DEFAULT_LIST, addLog, saveDraft, deleteDraft, useLogs, useAccount
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 
-const DRAFT_SAVE_SPEED = 5000; // Save a draft on changes after 5 seconds.
-// const DRAFT_SAVE_SPEED = 1000; // DEBUG: Save a draft on changes after a second.
+const DRAFT_SAVE_SPEED = (import.meta.env.DEV && import.meta.env.MODE !== 'prodfirestore') ?
+  1000: // DEBUG: Save a draft on changes after a second.
+  5000; // Save a draft on changes after 5 seconds.
 
 export function twoDig(singleOrDoubleDigit: number | string) {
   return singleOrDoubleDigit.toString().padStart(2, '0');
