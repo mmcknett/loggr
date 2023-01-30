@@ -1,11 +1,12 @@
 import { FirebaseContext } from '../data/FirebaseContext';
-import { useContext, useEffect, useState, MouseEvent } from 'react';
-import { ILog, DEFAULT_LIST, addLog, saveDraft, loadDraft, deleteDraft, useLogs, useAccount } from '../data/logs-collection';
+import { useContext, useEffect, MouseEvent, useRef, MutableRefObject, useCallback } from 'react';
+import { ILog, DEFAULT_LIST, addLog, saveDraft, deleteDraft, useLogs, useAccount } from '../data/logs-collection';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 
-const DRAFT_SAVE_SPEED = 5000; // Save a draft on changes after 5 seconds.
-// const DRAFT_SAVE_SPEED = 1000; // DEBUG: Save a draft on changes after a second.
+const DRAFT_SAVE_SPEED = (import.meta.env.DEV && import.meta.env.MODE !== 'prodfirestore') ?
+  1000: // DEBUG: Save a draft on changes after a second.
+  5000; // Save a draft on changes after 5 seconds.
 
 export function twoDig(singleOrDoubleDigit: number | string) {
   return singleOrDoubleDigit.toString().padStart(2, '0');
@@ -26,7 +27,11 @@ type TimeEntryFormData = {
   note?: string;
 };
 
-function getLogFromFormFields(formFields: TimeEntryFormData, recentList?: string, allowEmptyList: boolean = true) {
+function getLogFromFormFields(
+  formFields: TimeEntryFormData,
+  recentList?: string,
+  allowEmptyList: boolean = true)
+{
   const start = formFields.startTime && Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.startTime}`));
   const end = formFields.endTime && Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.endTime}`));
   
@@ -48,13 +53,9 @@ function getLogFromFormFields(formFields: TimeEntryFormData, recentList?: string
 }
 
 function getFormFieldsFromLog(log?: ILog) {
-  if (!log) {
-    return {};
-  }
-  
   const fields: TimeEntryFormData = {
     ...(log?.startTime && { startTime: timeString(log!.startTime!.toDate()) }),
-    ...(log?.endTime && { endTime: timeString(log!.endTime!.toDate()) }),
+    ...(log?.endTime && { endTime: timeString(log!.endTime!.toDate()) } || { endTime: '' }),
     ...(log?.startTime && { dateEntry: dateString(log!.startTime!.toDate()) }),
     note: log?.note || '',
     list: log?.list || ''
@@ -62,7 +63,7 @@ function getFormFieldsFromLog(log?: ILog) {
   return fields;
 }
 
-function makeDefaultFormValues(recentList?: string, log?: ILog) {
+function makeDefaultFormValues(log?: ILog) {
   return {
     dateEntry: dateString(),
     startTime: timeString(),
@@ -80,12 +81,13 @@ export function TimeEntryForm() {
   const draftSaved = draft?.savedTime?.toDate().toLocaleString() || '';
 
   const { register, handleSubmit, watch, formState: { errors }, reset: useFormReset } = useForm<TimeEntryFormData>({
-    defaultValues: makeDefaultFormValues(recentList, draft?.log)
+    defaultValues: makeDefaultFormValues(draft?.log),
+    values: getFormFieldsFromLog(draft?.log)
   });
 
   const reset = (evt?: MouseEvent<HTMLButtonElement>) => {
     evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
-    useFormReset(makeDefaultFormValues(recentList, draft?.log));
+    useFormReset(makeDefaultFormValues(draft?.log));
   };
 
   useEffect(() => {
@@ -93,28 +95,34 @@ export function TimeEntryForm() {
     if (draft) {
       reset();
     } else {
-      const defaultVals = makeDefaultFormValues(undefined, { note: '', list: '' });
-      defaultVals.endTime = '';
+      const defaultVals = makeDefaultFormValues();
       useFormReset(defaultVals);
     }
-  }, [draft]);
+  }, [draft, useFormReset]);
+
+  const draftSaveTimeoutRef: MutableRefObject<number | null> = useRef(null);
+  const cancelDraftSave = () => {
+    if (typeof draftSaveTimeoutRef.current === 'number') {
+      window.clearTimeout(draftSaveTimeoutRef.current);
+    }
+  }
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout | undefined;
     const subscription = watch((formData, { name: fieldName }) => {
+      // If a change occurred, schedule saving a draft. Cancel any pending draft saves.
       if (!fieldName) {
         // Don't schedule a draft save if this isn't the result of a field being changed.
         return;
       }
 
-      // A change occurred. Schedule saving a draft.
-      clearTimeout(timeoutId);
+      // Cancel any previous saves.
+      cancelDraftSave();
 
       // When creating a draft, don't save the list if it's a default or most-recent list.
       // We only want to track the default or most-recently-used list when actually
       // committing the log entry.
       const entry = getLogFromFormFields(formData);
-      timeoutId = setTimeout(async () => {
+      draftSaveTimeoutRef.current = window.setTimeout(async () => {
         await saveDraft(fBaseContext, entry);
       }, DRAFT_SAVE_SPEED);
     });
@@ -124,6 +132,8 @@ export function TimeEntryForm() {
   const submitTimeEntry = async (formData: TimeEntryFormData) => {
     // When saving a log, supply the most-recent list for use when saving.
     const entry = getLogFromFormFields(formData, recentList, false /*allowEmptyList*/);
+
+    cancelDraftSave(); // Stop any in-progress drafts from saving so we don't stomp the form state with it.
 
     try {
       await addLog(fBaseContext, entry);
