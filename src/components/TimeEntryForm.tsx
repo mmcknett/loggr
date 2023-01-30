@@ -86,9 +86,9 @@ export function TimeEntryForm() {
   });
 
   const reset = (evt?: MouseEvent<HTMLButtonElement>) => {
-      evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
-      useFormReset(makeDefaultFormValues(draft?.log));
-    };
+    evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
+    useFormReset(makeDefaultFormValues(draft?.log));
+  };
 
   useEffect(() => {
     // Draft has changed and has data, so reset.
@@ -129,20 +129,19 @@ export function TimeEntryForm() {
     return () => subscription.unsubscribe();
   }, [watch]);
 
-  const submitTimeEntry =
-    async (formData: TimeEntryFormData) => {
-      // When saving a log, supply the most-recent list for use when saving.
-      const entry = getLogFromFormFields(formData, recentList, false /*allowEmptyList*/);
+  const submitTimeEntry = async (formData: TimeEntryFormData) => {
+    // When saving a log, supply the most-recent list for use when saving.
+    const entry = getLogFromFormFields(formData, recentList, false /*allowEmptyList*/);
 
-      cancelDraftSave(); // Stop any in-progress drafts from saving so we don't stomp the form state with it.
+    cancelDraftSave(); // Stop any in-progress drafts from saving so we don't stomp the form state with it.
 
-      try {
-        await addLog(fBaseContext, entry);
-        reset();
-      } catch (err: any) {
-        console.error(`Failed to submit form: ${err.message}`);
-      }
-    };
+    try {
+      await addLog(fBaseContext, entry);
+      reset();
+    } catch (err: any) {
+      console.error(`Failed to submit form: ${err.message}`);
+    }
+  };
 
   const handleDraftDelete = (evt?: MouseEvent<HTMLButtonElement>) => {
     evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
