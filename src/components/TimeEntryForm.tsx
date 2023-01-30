@@ -26,7 +26,11 @@ type TimeEntryFormData = {
   note?: string;
 };
 
-function getLogFromFormFields(formFields: TimeEntryFormData, recentList?: string, allowEmptyList: boolean = true) {
+function getLogFromFormFields(
+  formFields: TimeEntryFormData,
+  recentList?: string,
+  allowEmptyList: boolean = true)
+{
   const start = formFields.startTime && Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.startTime}`));
   const end = formFields.endTime && Timestamp.fromDate(new Date(`${formFields.dateEntry}T${formFields.endTime}`));
   
@@ -58,7 +62,7 @@ function getFormFieldsFromLog(log?: ILog) {
   return fields;
 }
 
-function makeDefaultFormValues(recentList?: string, log?: ILog) {
+function makeDefaultFormValues(log?: ILog) {
   return {
     dateEntry: dateString(),
     startTime: timeString(),
@@ -76,16 +80,16 @@ export function TimeEntryForm() {
   const draftSaved = draft?.savedTime?.toDate().toLocaleString() || '';
 
   const { register, handleSubmit, watch, formState: { errors }, reset: useFormReset } = useForm<TimeEntryFormData>({
-    defaultValues: makeDefaultFormValues(recentList, draft?.log),
+    defaultValues: makeDefaultFormValues(draft?.log),
     values: getFormFieldsFromLog(draft?.log)
   });
 
   const reset = useCallback(
     (evt?: MouseEvent<HTMLButtonElement>) => {
       evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
-      useFormReset(makeDefaultFormValues(recentList, draft?.log));
+      useFormReset(makeDefaultFormValues(draft?.log));
     },
-    [draft, recentList, useFormReset]
+    [draft, useFormReset]
   );
 
   useEffect(() => {
@@ -93,8 +97,7 @@ export function TimeEntryForm() {
     if (draft) {
       reset();
     } else {
-      const defaultVals = makeDefaultFormValues(undefined, { note: '', list: '' });
-      defaultVals.endTime = '';
+      const defaultVals = makeDefaultFormValues();
       useFormReset(defaultVals);
     }
   }, [draft, reset, useFormReset]);
