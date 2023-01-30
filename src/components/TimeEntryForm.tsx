@@ -129,7 +129,7 @@ export function TimeEntryForm() {
     return () => subscription.unsubscribe();
   }, [watch]);
 
-  const submitTimeEntry = useCallback(
+  const submitTimeEntry =
     async (formData: TimeEntryFormData) => {
       // When saving a log, supply the most-recent list for use when saving.
       const entry = getLogFromFormFields(formData, recentList, false /*allowEmptyList*/);
@@ -142,9 +142,7 @@ export function TimeEntryForm() {
       } catch (err: any) {
         console.error(`Failed to submit form: ${err.message}`);
       }
-    },
-    [reset, cancelDraftSave, getLogFromFormFields, addLog]
-  );
+    };
 
   const handleDraftDelete = (evt?: MouseEvent<HTMLButtonElement>) => {
     evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
