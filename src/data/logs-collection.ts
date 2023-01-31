@@ -150,7 +150,8 @@ export function useAccount(fBaseContext: IFirebaseContext) {
     const uid = checkedUid(fBaseContext);
     const d = doc(fBaseContext.db, `${ACCOUNTS_COLLECTION}/${uid}`);
     const unsub = onSnapshot(d, (accountDocRef) => {
-      setAccount(accountDocRef.data() as IAccountData);
+      const account: IAccountData = accountDocRef.data() || {};
+      setAccount(account);
     });
     return unsub;
   }, [fBaseContext]);
