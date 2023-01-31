@@ -51,7 +51,9 @@ export function EmailPasswordForm(props: IEmailPasswordFormProps) {
       <label htmlFor='password'>Password:</label>
       <input autoComplete='current-password' type='password' id='password' name='password' value={state.password} onChange={handleChange} />
 
-      <button type='submit'>{ props.submitText }</button>
+      <div id='submit-row' className='horiz'>
+        <button type='submit'>{ props.submitText }</button>
+      </div>
       {state.lastError && <div style={{ color: 'red' }}>{state.lastError}</div>}
     </form>
   );
