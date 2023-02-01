@@ -10,10 +10,14 @@ body {
   text-align: center;
 }
 
+p {
+  text-align: left;
+}
+
 .App {
   display: flex;
   flex-direction: column;
-  min-width: 40vw;
+  min-width: 60vw;
 }
 
 /* Nav bar styling */
@@ -46,7 +50,6 @@ form {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  align-self: center;
 }
 
 input {
@@ -54,8 +57,18 @@ input {
   border: unset;
 }
 
-input + label, textarea + label, datalist + label {
+input[type=email] + label,
+input[type=password] + label,
+input[type=text] + label,
+textarea + label,
+datalist + label,
+.space-above
+{
   margin-top: 1rem;
+}
+
+.large-space-above {
+  margin-top: 3em;
 }
 
 .delete-button {
@@ -130,4 +143,5 @@ table {
 .signup-link {
   cursor: pointer;
   font-size: .8em;
+  text-align: left;
 }

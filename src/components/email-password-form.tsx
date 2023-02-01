@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { PropsWithChildren, useCallback } from 'react';
 import { Email, LastError, Password, useEmailPasswordForm } from './email-password-form-reducer';
 
 export type { Email, Password, LastError };
@@ -8,7 +8,7 @@ export interface IEmailPasswordFormProps {
   submitText: string
 }
 
-export function EmailPasswordForm(props: IEmailPasswordFormProps) {
+export function EmailPasswordForm(props: PropsWithChildren<IEmailPasswordFormProps>) {
   const [state, dispatch] = useEmailPasswordForm();
   
   const submit = useCallback(
@@ -50,6 +50,8 @@ export function EmailPasswordForm(props: IEmailPasswordFormProps) {
 
       <label htmlFor='password'>Password:</label>
       <input autoComplete='current-password' type='password' id='password' name='password' value={state.password} onChange={handleChange} />
+
+      { props.children }
 
       <div id='submit-row' className='horiz'>
         <button type='submit'>{ props.submitText }</button>
