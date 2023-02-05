@@ -67,6 +67,11 @@ datalist + label,
   margin-top: 1rem;
 }
 
+input::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #a6a6a6;
+  opacity: 1; /* Firefox */
+}
+
 .large-space-above {
   margin-top: 3em;
 }
