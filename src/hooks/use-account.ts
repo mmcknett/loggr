@@ -1,56 +1,55 @@
-import { deleteField, doc, onSnapshot, setDoc, Timestamp, updateDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { MutableRefObject, useRef, useState } from "react";
+import { deleteField, doc, DocumentReference, onSnapshot, setDoc, Timestamp, updateDoc } from "firebase/firestore";
+import { useDocumentData } from "react-firebase-hooks/firestore";
 
 import { checkedUid, IFirebaseContext } from "../data/FirebaseContext";
 import { IAccountData, ILog, ILogDraft } from "../data/data-types";
 import { ACCOUNTS_COLLECTION, checkedAccountPath } from "../data/paths";
 
 export function useAccount(fBaseContext: IFirebaseContext) {
-  const [account, setAccount] = useState<IAccountData>({});
+  const accountsPath = checkedAccountPath(fBaseContext);
+  const d = doc(fBaseContext.db, accountsPath);
+  const accountDocRef = useRef(d);
 
-  useEffect(() => {
-    const accountsPath = checkedAccountPath(fBaseContext);
-    const d = doc(fBaseContext.db, accountsPath);
-    const unsub = onSnapshot(d, (accountDocRef) => {
-      const account: IAccountData = accountDocRef.data() || {};
-      setAccount(account);
-    });
-    return unsub;
-  }, [fBaseContext]);
+  const [accountData, loading, error] = useDocumentData(accountDocRef.current);
 
-  return account;
+  const deleteDraft = makeDeleteDraft(accountDocRef, accountsPath);
+  const saveDraft = makeSaveDraft(accountDocRef, accountsPath);
+  const account: IAccountData = accountData || {};
+
+  return { account, loading, error, deleteDraft, saveDraft };
 }
 
-export async function deleteDraft(fBaseContext: IFirebaseContext) {
-  const uid = checkedUid(fBaseContext);
-  const docRef = doc(fBaseContext.db, ACCOUNTS_COLLECTION, uid);
-  try {
-    await updateDoc(docRef, { draft: deleteField() });
-    console.log(`Draft deleted for user ${uid}`);
-  } catch(err: any) {
-    console.error(`Unable to delete draft for user ${uid}. Message: ${err.message}`);
+function makeDeleteDraft(docRef: MutableRefObject<DocumentReference>, path: string) {
+  return async () => {
+    try {
+      await updateDoc(docRef.current, { draft: deleteField() });
+      console.log(`Draft deleted for user ${path}`);
+    } catch(err: any) {
+      console.error(`Unable to delete draft for user ${path}. Message: ${err.message}`);
+    }
   }
 }
 
-export async function saveDraft(fBaseContext: IFirebaseContext, entry: ILog) {
-  // If the timestamps have NaN in them, just delete the fields before saving.
-  if (entry?.endTime && isNaN(entry.endTime.seconds)) {
-    delete entry.endTime;
-  }
+function makeSaveDraft(docRef: MutableRefObject<DocumentReference>, path: string) { 
+  return async (entry: ILog) => {
+    // If the timestamps have NaN in them, just delete the fields before saving.
+    if (entry?.endTime && isNaN(entry.endTime.seconds)) {
+      delete entry.endTime;
+    }
 
-  if (entry?.startTime && isNaN(entry.startTime.seconds)) {
-    delete entry.startTime;
-  }
+    if (entry?.startTime && isNaN(entry.startTime.seconds)) {
+      delete entry.startTime;
+    }
 
-  const draft: ILogDraft = {
-    log: entry,
-    savedTime: Timestamp.now()
-  }
+    const draft: ILogDraft = {
+      log: entry,
+      savedTime: Timestamp.now()
+    }
 
-  const uid = checkedUid(fBaseContext);
-  const docRef = doc(fBaseContext.db, ACCOUNTS_COLLECTION, uid);
-  await setDoc(docRef, { draft }, { merge: true });
-  console.log(`Draft saved for user ${uid}`);
+    await setDoc(docRef.current, { draft }, { merge: true });
+    console.log(`Draft saved for user ${path}`);
+  };
 }
 
 export async function saveMruListAndDeleteDraft(fBaseContext: IFirebaseContext, list: string) {

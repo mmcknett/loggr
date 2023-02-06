@@ -4,7 +4,7 @@ import { useLogs } from '../hooks/use-logs';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 import { DEFAULT_LIST, ILog } from '../data/data-types';
-import { deleteDraft, saveDraft, useAccount } from '../hooks/use-account';
+import { useAccount } from '../hooks/use-account';
 import { useInProgress } from '../hooks/use-in-progress';
 import Spinner from './Spinner';
 
@@ -78,7 +78,7 @@ function makeDefaultFormValues(log?: ILog) {
 export function TimeEntryForm() {
   const fBaseContext = useContext(FirebaseContext)!;
 
-  const account = useAccount(fBaseContext);
+  const { account, deleteDraft, saveDraft } = useAccount(fBaseContext);
   const { draft, recentList } = account;
   const { lists, addLog } = useLogs(fBaseContext);
 
@@ -127,7 +127,7 @@ export function TimeEntryForm() {
       // committing the log entry.
       const entry = getLogFromFormFields(formData);
       draftSaveTimeoutRef.current = window.setTimeout(async () => {
-        await saveDraft(fBaseContext, entry);
+        await saveDraft(entry);
       }, DRAFT_SAVE_SPEED);
     });
     return () => subscription.unsubscribe();
@@ -155,7 +155,7 @@ export function TimeEntryForm() {
 
   const handleDraftDelete = (evt?: MouseEvent<HTMLButtonElement>) => {
     evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
-    deleteDraft(fBaseContext);
+    deleteDraft();
   };
 
   const defaultPlaceholder = recentList ? `${recentList} (last used)` : `${DEFAULT_LIST} (default)`;
