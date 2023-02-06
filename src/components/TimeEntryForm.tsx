@@ -1,6 +1,6 @@
 import { FirebaseContext } from '../data/FirebaseContext';
 import { useContext, useEffect, MouseEvent, useRef, MutableRefObject } from 'react';
-import { addLog, useLogs } from '../hooks/use-logs';
+import { useLogs } from '../hooks/use-logs';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 import { DEFAULT_LIST, ILog } from '../data/data-types';
@@ -78,7 +78,7 @@ export function TimeEntryForm() {
 
   const account = useAccount(fBaseContext);
   const { draft, recentList } = account;
-  const { lists } = useLogs(fBaseContext);
+  const { lists, addLog } = useLogs(fBaseContext);
 
   const draftSaved = draft?.savedTime?.toDate().toLocaleString() || '';
 
@@ -138,7 +138,7 @@ export function TimeEntryForm() {
     cancelDraftSave(); // Stop any in-progress drafts from saving so we don't stomp the form state with it.
 
     try {
-      await addLog(fBaseContext, entry);
+      await addLog(entry);
       reset();
     } catch (err: any) {
       console.error(`Failed to submit form: ${err.message}`);

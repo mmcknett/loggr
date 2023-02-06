@@ -1,11 +1,12 @@
-import { Timestamp } from "firebase/firestore";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 
 export interface ILog {
   id?: string,
   startTime?: Timestamp,
   endTime?: Timestamp,
   note: string,
-  list: string
+  list: string,
+  ref?: DocumentReference
 }
 
 export interface IAccountData {
