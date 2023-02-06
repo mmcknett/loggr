@@ -1,11 +1,16 @@
+import { UserCredential } from 'firebase/auth';
 import React, { PropsWithChildren, useCallback } from 'react';
+
 import { Email, LastError, Password, useEmailPasswordForm } from './email-password-form-reducer';
+import Spinner from './Spinner';
 
 export type { Email, Password, LastError };
 export interface IEmailPasswordFormProps {
-  submit: (email: Email, password: Password) => Promise<LastError>,
+  submit: (email: Email, password: Password) => Promise<LastError> | Promise<UserCredential | undefined>,
   formTitle: string,
-  submitText: string
+  submitText: string,
+  error?: LastError,
+  inProgress?: boolean
 }
 
 export function EmailPasswordForm(props: PropsWithChildren<IEmailPasswordFormProps>) {
@@ -16,8 +21,8 @@ export function EmailPasswordForm(props: PropsWithChildren<IEmailPasswordFormPro
       evt.preventDefault();
 
       const doSubmit = async () => {
-        let message: LastError = await props.submit(state.email, state.password);
-        if (message) {
+        let message = await props.submit(state.email, state.password);
+        if (typeof message === 'string') {
           dispatch({ t: 'ERROR', payload: `Login failed with message: "${message}"` });
         }
       };
@@ -54,8 +59,9 @@ export function EmailPasswordForm(props: PropsWithChildren<IEmailPasswordFormPro
       { props.children }
 
       <div id='submit-row' className='horiz'>
-        <button type='submit'>{ props.submitText }</button>
+        <button type='submit' disabled={props.inProgress}>{ props.submitText } {props.inProgress && <Spinner/>}</button>
       </div>
+      {props.error && <div style={{ color: 'red' }}>{props.error}</div>}
       {state.lastError && <div style={{ color: 'red' }}>{state.lastError}</div>}
     </form>
   );
