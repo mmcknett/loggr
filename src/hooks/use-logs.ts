@@ -4,7 +4,7 @@ import { useCollection } from 'react-firebase-hooks/firestore';
 import { IFirebaseContext } from "../data/FirebaseContext";
 import { DEFAULT_LIST, ILog } from '../data/data-types';
 import { checkedLogPath } from "../data/paths";
-import { saveMruListAndDeleteDraft } from "./useAccount";
+import { saveMruListAndDeleteDraft } from "./use-account";
 
 export function useLogs(fBaseContext: IFirebaseContext, listName: string = DEFAULT_LIST) {
   const [logsSnapshot, loading, error] = useCollection(collection(fBaseContext.db, checkedLogPath(fBaseContext))); //, where("list", "==", listName));

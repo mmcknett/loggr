@@ -4,7 +4,7 @@ import { addLog, useLogs } from '../hooks/use-logs';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 import { DEFAULT_LIST, ILog } from '../data/data-types';
-import { deleteDraft, saveDraft, useAccount } from '../hooks/useAccount';
+import { deleteDraft, saveDraft, useAccount } from '../hooks/use-account';
 
 const DRAFT_SAVE_SPEED = (import.meta.env.DEV && import.meta.env.MODE !== 'prodfirestore') ?
   1000: // DEBUG: Save a draft on changes after a second.
