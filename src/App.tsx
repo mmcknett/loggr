@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { OneEightyRing } from 'react-svg-spinners';
 
 import './App.css'
 import { FirebaseContext } from './data/FirebaseContext'
@@ -12,7 +13,7 @@ import { SignupForm } from './components/SignupForm';
 
 
 export default function App() {
-  const [currentUser, loading] = useAuthState(auth);
+  let [currentUser, loading] = useAuthState(auth);
   const [showSignup, setShowSignup] = useState(false);
 
   return (
@@ -20,7 +21,7 @@ export default function App() {
       <div className='App'>
         {
             loading ? 
-              "Loading..."
+              <div>Loading <OneEightyRing color="white" width="0.8em" height="0.8em"/></div>
             :
             currentUser ? 
               <>
