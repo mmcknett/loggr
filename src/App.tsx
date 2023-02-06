@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { OneEightyRing } from 'react-svg-spinners';
 
 import './App.css'
 import { FirebaseContext } from './data/FirebaseContext'
@@ -10,6 +9,7 @@ import { LoginForm } from './components/LoginForm';
 import { TimeEntryForm } from './components/TimeEntryForm';
 import { NavBar } from './components/NavBar';
 import { SignupForm } from './components/SignupForm';
+import Spinner from './components/Spinner';
 
 
 export default function App() {
@@ -21,7 +21,7 @@ export default function App() {
       <div className='App'>
         {
             loading ? 
-              <div>Loading <OneEightyRing color="white" width="0.8em" height="0.8em"/></div>
+              <div>Loading <Spinner/></div>
             :
             currentUser ? 
               <>
