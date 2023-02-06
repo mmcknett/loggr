@@ -1,46 +1,33 @@
 import { UserCredential } from 'firebase/auth';
 import React, { PropsWithChildren, useCallback } from 'react';
 
-import { Email, LastError, Password, useEmailPasswordForm } from './email-password-form-reducer';
+import { Email, Password, useEmailPasswordForm } from './email-password-form-reducer';
 import Spinner from './Spinner';
 
-export type { Email, Password, LastError };
+export type { Email, Password };
+
 export interface IEmailPasswordFormProps {
-  submit: (email: Email, password: Password) => Promise<LastError> | Promise<UserCredential | undefined>,
+  submit: (email: Email, password: Password) => Promise<UserCredential | undefined>,
   formTitle: string,
   submitText: string,
-  error?: LastError,
+  error?: string,
   inProgress?: boolean
 }
 
 export function EmailPasswordForm(props: PropsWithChildren<IEmailPasswordFormProps>) {
   const [state, dispatch] = useEmailPasswordForm();
   
-  const submit = useCallback(
-    (evt: React.FormEvent<HTMLFormElement>) => {
-      evt.preventDefault();
-
-      const doSubmit = async () => {
-        let message = await props.submit(state.email, state.password);
-        if (typeof message === 'string') {
-          dispatch({ t: 'ERROR', payload: `Login failed with message: "${message}"` });
-        }
-      };
-
-      doSubmit();
-    },
-    [props.submit, state.email, state.password]
-  );
-
+  const submit = (evt: React.FormEvent<HTMLFormElement>) => {
+    evt.preventDefault();
+    props.submit(state.email, state.password);
+  };
 
   const handleChange = useCallback(
     (evt: React.ChangeEvent<HTMLInputElement>) => {
       evt.preventDefault();
-
-      if (evt.target.name == 'email') {
-        dispatch({ t: 'EMAIL', payload: evt.target.value });
-      } else if (evt.target.name == 'password') {
-        dispatch({ t: 'PASSWORD', payload: evt.target.value });
+      const { name } = evt.target;
+      if (name === 'email' || name === 'password') {
+        dispatch({ t: name, payload: evt.target.value });
       }
     },
     []
@@ -61,8 +48,7 @@ export function EmailPasswordForm(props: PropsWithChildren<IEmailPasswordFormPro
       <div id='submit-row' className='horiz'>
         <button type='submit' disabled={props.inProgress}>{ props.submitText } {props.inProgress && <Spinner/>}</button>
       </div>
-      {props.error && <div style={{ color: 'red' }}>{props.error}</div>}
-      {state.lastError && <div style={{ color: 'red' }}>{state.lastError}</div>}
+      {props.error && <span style={{ color: 'red' }}>{props.error}</span>}
     </form>
   );
 }

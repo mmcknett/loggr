@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
 
 import { FirebaseContext } from '../data/FirebaseContext';
-import { EmailPasswordForm, Email, Password, LastError } from './email-password-form';
+import { EmailPasswordForm } from './email-password-form';
 
 export function LoginForm() {
   const { auth } = useContext(FirebaseContext)!;

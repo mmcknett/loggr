@@ -3,7 +3,7 @@ import { useContext, useState } from 'react';
 import { useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
 
 import { FirebaseContext } from '../data/FirebaseContext';
-import { EmailPasswordForm, Email, Password, LastError } from './email-password-form';
+import { EmailPasswordForm, Email, Password } from './email-password-form';
 
 export function SignupForm() {
   const { auth } = useContext(FirebaseContext)!;
