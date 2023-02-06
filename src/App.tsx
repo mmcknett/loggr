@@ -2,7 +2,7 @@ import './App.css'
 import { FirebaseContext } from './data/FirebaseContext'
 import { app, db, auth } from './data/database';
 import { useState } from 'react';
-import { useLogin } from './useLogin';
+import { useLogin } from './hooks/useLogin';
 import { LogTable } from './components/LogTable';
 import { LoginForm } from './components/LoginForm';
 import { TimeEntryForm } from './components/TimeEntryForm';

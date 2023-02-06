@@ -1,6 +1,5 @@
 import { auth } from '../data/database';
-import React from 'react';
-import { useLogin } from '../useLogin';
+import { useLogin } from '../hooks/useLogin';
 import { LogoutButton } from './LogoutButton';
 
 export function NavBar() {
