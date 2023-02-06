@@ -1,10 +1,12 @@
 import { FirebaseContext } from '../data/FirebaseContext';
-import { useContext, useEffect, MouseEvent, useRef, MutableRefObject } from 'react';
+import { useContext, useEffect, MouseEvent, useRef, MutableRefObject, FormEvent } from 'react';
 import { useLogs } from '../hooks/use-logs';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 import { DEFAULT_LIST, ILog } from '../data/data-types';
 import { deleteDraft, saveDraft, useAccount } from '../hooks/use-account';
+import { useInProgress } from '../hooks/use-in-progress';
+import Spinner from './Spinner';
 
 const DRAFT_SAVE_SPEED = (import.meta.env.DEV && import.meta.env.MODE !== 'prodfirestore') ?
   1000: // DEBUG: Save a draft on changes after a second.
@@ -145,6 +147,12 @@ export function TimeEntryForm() {
     }
   };
 
+  const [blockingSubmitTimeEntry, submitInProgress] = useInProgress(handleSubmit(submitTimeEntry));
+  const blockingSubmitWithPreventDef = (evt: FormEvent<HTMLFormElement>) => {
+    evt.preventDefault();
+    blockingSubmitTimeEntry();
+  }
+
   const handleDraftDelete = (evt?: MouseEvent<HTMLButtonElement>) => {
     evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
     deleteDraft(fBaseContext);
@@ -153,7 +161,7 @@ export function TimeEntryForm() {
   const defaultPlaceholder = recentList ? `${recentList} (last used)` : `${DEFAULT_LIST} (default)`;
 
   return (
-    <form onSubmit={handleSubmit(submitTimeEntry)}>
+    <form onSubmit={ blockingSubmitWithPreventDef }>
       <h2>Add Log Entry</h2>
 
       <label htmlFor='dateEntry'>Date:</label>
@@ -181,7 +189,7 @@ export function TimeEntryForm() {
       {draftSaved && <em className='notification'>Draft last saved {draftSaved}</em>}
 
       <div id='submit-row' className='horiz'>
-        <button tabIndex={5} type='submit'>Add Entry</button>
+        <button tabIndex={5} type='submit' disabled={ submitInProgress }>Add Entry {submitInProgress && <Spinner/>}</button>
         <button type='reset' onClick={handleDraftDelete}>Delete Draft</button>
       </div>
     </form>
