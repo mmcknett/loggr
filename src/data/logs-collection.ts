@@ -11,44 +11,9 @@ import {
   updateDoc
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { IFirebaseContext } from "./FirebaseContext";
-
-export interface ILog {
-  id?: string,
-  startTime?: Timestamp,
-  endTime?: Timestamp,
-  note: string,
-  list: string
-}
-
-export interface IAccountData {
-  draft?: ILogDraft,
-  recentList?: string
-}
-
-export interface ILogDraft {
-  log: ILog,
-  savedTime: Timestamp
-}
-
-export const DEFAULT_LIST = 'Main';
-const LOGS_COLLECTION = 'logs';
-const ACCOUNTS_COLLECTION = 'accounts';
-
-const logPath = (uid: string) => `${ACCOUNTS_COLLECTION}/${uid}/${LOGS_COLLECTION}`;
-
-const checkedUid = ({ auth }: IFirebaseContext) => {
-  if (!auth.currentUser) {
-    throw new Error(`No user is logged in.`);
-  }
-  const uid = auth.currentUser.uid;
-  return uid;
-}
-
-const checkedLogPath = (fBaseContext: IFirebaseContext) => {
-  const uid = checkedUid(fBaseContext)
-  return logPath(uid);
-}
+import { checkedUid, IFirebaseContext } from "./FirebaseContext";
+import { DEFAULT_LIST, ILog, ILogDraft } from './data-types';
+import { ACCOUNTS_COLLECTION, checkedLogPath } from "./paths";
 
 export function useLogs(fBaseContext: IFirebaseContext, listName: string = DEFAULT_LIST) {
   const [logs, setLogs] = useState<ILog[] | null>(null);
@@ -141,20 +106,4 @@ export async function saveMruListAndDeleteDraft(fBaseContext: IFirebaseContext, 
   const docRef = doc(fBaseContext.db, ACCOUNTS_COLLECTION, uid);
   await setDoc(docRef, { draft: deleteField(), recentList: list }, { merge: true });
   console.log(`Deleted draft and set MRU list for user ${uid}`);
-}
-
-export function useAccount(fBaseContext: IFirebaseContext) {
-  const [account, setAccount] = useState<IAccountData>({});
-
-  useEffect(() => {
-    const uid = checkedUid(fBaseContext);
-    const d = doc(fBaseContext.db, `${ACCOUNTS_COLLECTION}/${uid}`);
-    const unsub = onSnapshot(d, (accountDocRef) => {
-      const account: IAccountData = accountDocRef.data() || {};
-      setAccount(account);
-    });
-    return unsub;
-  }, [fBaseContext]);
-
-  return account;
 }
