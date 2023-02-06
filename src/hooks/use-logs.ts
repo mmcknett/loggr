@@ -1,10 +1,10 @@
 import { addDoc, collection, deleteDoc, doc } from "firebase/firestore";
 import { useCollection } from 'react-firebase-hooks/firestore';
 
-import { IFirebaseContext } from "./FirebaseContext";
-import { DEFAULT_LIST, ILog } from './data-types';
-import { checkedLogPath } from "./paths";
-import { saveMruListAndDeleteDraft } from "../hooks/useAccount";
+import { IFirebaseContext } from "../data/FirebaseContext";
+import { DEFAULT_LIST, ILog } from '../data/data-types';
+import { checkedLogPath } from "../data/paths";
+import { saveMruListAndDeleteDraft } from "./useAccount";
 
 export function useLogs(fBaseContext: IFirebaseContext, listName: string = DEFAULT_LIST) {
   const [logsSnapshot, loading, error] = useCollection(collection(fBaseContext.db, checkedLogPath(fBaseContext))); //, where("list", "==", listName));

@@ -1,6 +1,6 @@
 import { FirebaseContext } from '../data/FirebaseContext';
 import { useContext, useEffect, MouseEvent, useRef, MutableRefObject } from 'react';
-import { addLog, useLogs } from '../data/logs-collection';
+import { addLog, useLogs } from '../hooks/use-logs';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 import { DEFAULT_LIST, ILog } from '../data/data-types';
