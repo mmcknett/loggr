@@ -1,27 +1,32 @@
-import { FirebaseContext } from '../data/FirebaseContext';
+import { UserCredential } from 'firebase/auth';
 import { useContext, useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { EmailPasswordForm, Email, Password, LastError } from './email-password-form';
+import { useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
+
+import { FirebaseContext } from '../data/FirebaseContext';
+import { EmailPasswordForm, Email, Password } from './email-password-form';
 
 export function SignupForm() {
   const { auth } = useContext(FirebaseContext)!;
+  const [
+    createUserWithEmailAndPassword,
+    _user,
+    loading,
+    error,
+  ] = useCreateUserWithEmailAndPassword(auth);
 
   const [tosAccepted, setTosAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [signupError, setSignupError] = useState('');
 
-  const signup = async (email: Email, password: Password): Promise<LastError> => {
+  const signup = async (email: Email, password: Password): Promise<UserCredential | undefined> => {
     if (!tosAccepted || !privacyAccepted) {
-      return "You must agree to the Terms of Service and Privacy Policy.";
+      setSignupError('You must agree to the Terms of Service and Privacy Policy.');
+      return;
+    } else {
+      setSignupError('');
     }
 
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      return '';
-    } catch (err: any) {
-      // Handle error codes listed in https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#error-codes_3
-      const { message } = err;
-      return message;
-    }
+    return createUserWithEmailAndPassword(email, password);
   }
 
   return (
@@ -29,6 +34,8 @@ export function SignupForm() {
       submit={ signup }
       formTitle='Create an Account'
       submitText='Sign Up'
+      inProgress={ loading }
+      error={ error?.message || signupError }
     >
       <h4 className='large-space-above'>Terms of Service</h4>
       <p>

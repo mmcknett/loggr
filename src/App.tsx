@@ -1,22 +1,28 @@
+import { useState } from 'react';
+import { useAuthState } from 'react-firebase-hooks/auth';
+
 import './App.css'
 import { FirebaseContext } from './data/FirebaseContext'
 import { app, db, auth } from './data/database';
-import { useState } from 'react';
-import { useLogin } from './useLogin';
 import { LogTable } from './components/LogTable';
 import { LoginForm } from './components/LoginForm';
 import { TimeEntryForm } from './components/TimeEntryForm';
 import { NavBar } from './components/NavBar';
 import { SignupForm } from './components/SignupForm';
+import Spinner from './components/Spinner';
+
 
 export default function App() {
-  const currentUser = useLogin(auth);
+  let [currentUser, loading] = useAuthState(auth);
   const [showSignup, setShowSignup] = useState(false);
 
   return (
     <FirebaseContext.Provider value={{ app, db, auth }}>
       <div className='App'>
         {
+            loading ? 
+              <div>Loading <Spinner/></div>
+            :
             currentUser ? 
               <>
               <NavBar />

@@ -1,14 +1,15 @@
+import { useAuthState } from 'react-firebase-hooks/auth';
+
 import { auth } from '../data/database';
-import React from 'react';
-import { useLogin } from '../useLogin';
 import { LogoutButton } from './LogoutButton';
 
 export function NavBar() {
-  const currentUser = useLogin(auth) || '';
+  const [user, loading] = useAuthState(auth);
+  const emailDisplay = loading ? 'Fetching email...' : (user?.email || '');
   return (
     <div className='nav-bar'>
-      {currentUser}
-      <span className='vl' />
+      { emailDisplay }
+      { emailDisplay && <span className='vl' /> }
       <LogoutButton />
     </div>
   );

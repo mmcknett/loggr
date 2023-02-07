@@ -9,4 +9,12 @@ export interface IFirebaseContext {
   auth: Auth
 }
 
+export const checkedUid = ({ auth }: IFirebaseContext) => {
+  if (!auth.currentUser) {
+    throw new Error(`No user is logged in.`);
+  }
+  const uid = auth.currentUser.uid;
+  return uid;
+}
+
 export const FirebaseContext = createContext<IFirebaseContext | null>(null);

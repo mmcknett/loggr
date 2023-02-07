@@ -1,8 +1,12 @@
 import { FirebaseContext } from '../data/FirebaseContext';
-import { useContext, useEffect, MouseEvent, useRef, MutableRefObject, useCallback } from 'react';
-import { ILog, DEFAULT_LIST, addLog, saveDraft, deleteDraft, useLogs, useAccount } from '../data/logs-collection';
+import { useContext, useEffect, MouseEvent, useRef, MutableRefObject, FormEvent } from 'react';
+import { useLogs } from '../hooks/use-logs';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
+import { DEFAULT_LIST, ILog } from '../data/data-types';
+import { useAccount } from '../hooks/use-account';
+import { useInProgress } from '../hooks/use-in-progress';
+import Spinner from './Spinner';
 
 const DRAFT_SAVE_SPEED = (import.meta.env.DEV && import.meta.env.MODE !== 'prodfirestore') ?
   1000: // DEBUG: Save a draft on changes after a second.
@@ -74,9 +78,9 @@ function makeDefaultFormValues(log?: ILog) {
 export function TimeEntryForm() {
   const fBaseContext = useContext(FirebaseContext)!;
 
-  const account = useAccount(fBaseContext);
+  const { account, deleteDraft, saveDraft } = useAccount(fBaseContext);
   const { draft, recentList } = account;
-  const { lists } = useLogs(fBaseContext);
+  const { lists, addLog } = useLogs(fBaseContext);
 
   const draftSaved = draft?.savedTime?.toDate().toLocaleString() || '';
 
@@ -123,7 +127,7 @@ export function TimeEntryForm() {
       // committing the log entry.
       const entry = getLogFromFormFields(formData);
       draftSaveTimeoutRef.current = window.setTimeout(async () => {
-        await saveDraft(fBaseContext, entry);
+        await saveDraft(entry);
       }, DRAFT_SAVE_SPEED);
     });
     return () => subscription.unsubscribe();
@@ -136,22 +140,28 @@ export function TimeEntryForm() {
     cancelDraftSave(); // Stop any in-progress drafts from saving so we don't stomp the form state with it.
 
     try {
-      await addLog(fBaseContext, entry);
+      await addLog(entry);
       reset();
     } catch (err: any) {
       console.error(`Failed to submit form: ${err.message}`);
     }
   };
 
+  const [blockingSubmitTimeEntry, submitInProgress] = useInProgress(handleSubmit(submitTimeEntry));
+  const blockingSubmitWithPreventDef = (evt: FormEvent<HTMLFormElement>) => {
+    evt.preventDefault();
+    blockingSubmitTimeEntry();
+  }
+
   const handleDraftDelete = (evt?: MouseEvent<HTMLButtonElement>) => {
     evt?.preventDefault(); // Required for form reset to work as expected w/ useForm
-    deleteDraft(fBaseContext);
+    deleteDraft();
   };
 
   const defaultPlaceholder = recentList ? `${recentList} (last used)` : `${DEFAULT_LIST} (default)`;
 
   return (
-    <form onSubmit={handleSubmit(submitTimeEntry)}>
+    <form onSubmit={ blockingSubmitWithPreventDef }>
       <h2>Add Log Entry</h2>
 
       <label htmlFor='dateEntry'>Date:</label>
@@ -179,7 +189,7 @@ export function TimeEntryForm() {
       {draftSaved && <em className='notification'>Draft last saved {draftSaved}</em>}
 
       <div id='submit-row' className='horiz'>
-        <button tabIndex={5} type='submit'>Add Entry</button>
+        <button tabIndex={5} type='submit' disabled={ submitInProgress }>Add Entry {submitInProgress && <Spinner/>}</button>
         <button type='reset' onClick={handleDraftDelete}>Delete Draft</button>
       </div>
     </form>
