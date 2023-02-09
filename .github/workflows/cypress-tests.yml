@@ -8,12 +8,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      # Install firebase emulators
+      - run: npm install -g firebase-tools
       # Install NPM dependencies, cache them correctly
       # and run all Cypress tests
       - name: Cypress run
         uses: cypress-io/github-action@v5.0.8 # use the explicit version number
         with:
-          build: npm install -g firebase-tools && npm run build
+          build: npm run build
           start: |
             npm run dev:vite
             firebase emulators:start --only firestore
