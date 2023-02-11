@@ -24,6 +24,6 @@ export const auth = getAuth(app);
 // In dev mode, when prod firestore is not specifically selected, connect to the emulator.
 // Use vite's statically-replaced env variables/modes: https://vitejs.dev/guide/env-and-mode.html#modes
 if (import.meta.env.DEV && import.meta.env.MODE !== 'prodfirestore') {
-  connectFirestoreEmulator(db, 'localhost', 8080);
-  connectAuthEmulator(auth, 'http://localhost:9099');
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099');
 }
