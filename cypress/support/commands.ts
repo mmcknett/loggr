@@ -35,3 +35,18 @@
 //     }
 //   }
 // }
+import { auth, attachEmulators } from '../../src/data/firebase';
+
+attachEmulators(); // Make sure the emulators have been attached when Cypress accesses them.
+
+Cypress.Commands.add('deleteUser', () => {
+  auth.currentUser.delete();
+});
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      deleteUser(): Chainable<void>
+    }
+  }
+}
