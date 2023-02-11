@@ -30,4 +30,19 @@ describe('Loggr End-to-end happy path tests', () => {
     // Expect that we are taken to the entry form after signup.
     cy.contains('Add Log Entry');
   });
+
+  it('Can create a draft that persists', () => {
+    cy.visit(INDEX);
+    cy.get('#note').type('A draft note');
+
+    cy.wait(1100); // Draft takes a second to save
+
+    cy.visit(INDEX);
+    cy.get('#note').contains('A draft note');
+  });
+
+  it('Can submit a draft', () => {
+    cy.visit(INDEX);
+    cy.get('#endTime').type('08:00'); // This might fail later when the test runs after 8am and we stop allowing end time to be before start time.
+  });
 })
