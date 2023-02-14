@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { connectFirestoreEmulator, initializeFirestore } from "firebase/firestore";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
 
 // Firebase configuration: Firebase API key and app IDs are not secret.
@@ -16,8 +16,7 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore and get a reference to the service
-export const db = getFirestore(app);
-
+export const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true, })
 // Initialize the firebase auth service.
 export const auth = getAuth(app);
 
