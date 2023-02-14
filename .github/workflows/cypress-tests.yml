@@ -18,4 +18,4 @@ jobs:
           build: npm run build
           start: |
             npm run dev:vite
-            firebase emulators:start --only firestore
+            npm run emulators:tests
