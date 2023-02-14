@@ -43,10 +43,17 @@ Cypress.Commands.add('deleteUser', () => {
   auth.currentUser.delete();
 });
 
+Cypress.Commands.add('clearDb', () => {
+  fetch("http://127.0.0.1:8080/emulator/v1/projects/loggr-a3f89/databases/(default)/documents", {
+    method: 'DELETE'
+  });
+})
+
 declare global {
   namespace Cypress {
     interface Chainable {
-      deleteUser(): Chainable<void>
+      deleteUser(): Chainable<void>,
+      clearDb(): Chainable<void>
     }
   }
 }

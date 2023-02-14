@@ -3,6 +3,7 @@ const INDEX = 'http://localhost:5173/';
 describe('Loggr End-to-end happy path tests', () => {
   after(() => {
     cy.deleteUser();
+    cy.clearDb();
   });
 
   it('Loads the page', () => {
