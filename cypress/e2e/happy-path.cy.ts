@@ -53,6 +53,8 @@ describe('Loggr End-to-end happy path tests', () => {
     cy.get('#endTime').type('08:00');
     cy.get('form').submit();
     cy.get('.note-display').contains('A permanent note');
+
+    cy.wait(500); // Give the firestore library a chance to persist the change
   });
 
   it('Can delete the note', () => {
