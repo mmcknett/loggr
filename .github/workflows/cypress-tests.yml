@@ -16,7 +16,6 @@ jobs:
         uses: cypress-io/github-action@v5.0.8 # use the explicit version number
         with:
           wait-on: 'http://localhost:4000, http://localhost:5173'
-          build: npm run build
           start: |
             npm run dev:vite
             npm run emulators:tests
