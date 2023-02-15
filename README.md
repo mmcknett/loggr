@@ -31,7 +31,7 @@ The easiest way to run end-to-end cypress tests is:
 npm run cypress:auto
 ```
 
-This will launch the dev server, start the emulators, and invoke a cypress run.
+This will build the project to use the emulators, start the emulators, and invoke a cypress run. Everything tears down automatically.
 
 You can also start the dev server and emulators in the same mode and let them continue running with:
 
@@ -39,8 +39,12 @@ You can also start the dev server and emulators in the same mode and let them co
 npm run dev:cypress
 ```
 
-With the dev server and firebase emulators running in this mode, invoke cypress commands by running them from the command line with `npm run cypress:run` or open the cypress UI and select tests to run manually with:
+With the dev server and firebase emulators running in this mode, invoke cypress commands by running them from the command line:
 
 ```
+# For interactive Cypress UI
 npm run cypress
+
+# To run Cypress without the UI
+npm run cypress:run
 ```
