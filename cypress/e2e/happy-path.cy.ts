@@ -45,7 +45,7 @@ describe('Loggr End-to-end happy path tests', () => {
     cy.log('# Can create a draft that persists');
 
     cy.get('#note').type('A draft note');
-    cy.wait(1100); // Draft takes a second to save
+    cy.wait(1500); // Draft takes a second to save
 
     cy.visit(INDEX); // Reload the page to check persistence.
 
