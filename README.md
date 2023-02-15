@@ -24,6 +24,8 @@ You can also target the real firestore database:
 npm run dev:real-db
 ```
 
+These commands run the vite dev server, which makes the app available at http://localhost:5173/.
+
 ## Testing
 The easiest way to run end-to-end cypress tests is:
 
@@ -48,3 +50,5 @@ npm run cypress
 # To run Cypress without the UI
 npm run cypress:run
 ```
+
+Note that unlike the commands that run the `vite` dev server, these commands build the app in `emulators` mode, and rely on the firebase hosting emulator to make the built app available on http://localhost:5000.
