@@ -1,7 +1,7 @@
 # How adding Cypress went
 
 ## Bootstrapping
-Adding cypress seems really straightforward, but it's not! It took a few hours just to reach the stage where GitHub Actions (GHA) could open launch the app and run a cypress test that opened the main page.
+Adding cypress seems really straightforward, but it's not! It took a few hours just to reach the stage where GitHub Actions (GHA) could start the app and run a cypress test that opened the main page.
 
 Once the most basic test was implemented, the next step was logging in. Of course, I didn't want to use the production firebase authentication store (writing tests could make an impossible mess!), so I had to set up the authentication emulator and run that in GHA, too.
 
