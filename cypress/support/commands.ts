@@ -35,7 +35,7 @@
 //     }
 //   }
 // }
-import { auth, attachEmulators } from '../../src/data/firebase';
+import { auth, attachEmulators, projectId } from '../../src/data/firebase';
 
 attachEmulators(); // Make sure the emulators have been attached when Cypress accesses them.
 
@@ -44,10 +44,10 @@ Cypress.Commands.add('deleteUser', () => {
 });
 
 Cypress.Commands.add('clearDb', () => {
-  fetch("http://127.0.0.1:8080/emulator/v1/projects/loggr-a3f89/databases/(default)/documents", {
+  fetch(`http://127.0.0.1:8080/emulator/v1/projects/${projectId}/databases/(default)/documents`, {
     method: 'DELETE'
   });
-})
+});
 
 declare global {
   namespace Cypress {
