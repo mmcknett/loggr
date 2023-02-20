@@ -6,9 +6,10 @@ import { useForm } from 'react-hook-form';
 import { DEFAULT_LIST, ILog } from '../data/data-types';
 import { useAccount } from '../hooks/use-account';
 import { useInProgress } from '../hooks/use-in-progress';
+import { shouldSaveDraftQuickly } from '../data/dev-mode';
 import Spinner from './Spinner';
 
-const DRAFT_SAVE_SPEED = (import.meta.env.DEV && import.meta.env.MODE !== 'prodfirestore') ?
+const DRAFT_SAVE_SPEED = shouldSaveDraftQuickly ?
   1000: // DEBUG: Save a draft on changes after a second.
   5000; // Save a draft on changes after 5 seconds.
 

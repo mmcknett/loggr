@@ -4,12 +4,17 @@
   "version": "0.2.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently --names \"emu,vite\" -c \"magenta,blue\" --prefix \"[{name}]\" \"npm:dev:emulators\" \"npm:dev:vite\"",
+    "dev": "concurrently --names \"emu,vite\" -c \"magenta,blue\" --prefix \"[{name}]\" \"npm:emulators:persist\" \"npm:dev:vite\"",
+    "dev:cypress": "npm run build:tests && npm run emulators:tests",
     "dev:vite": "vite",
-    "dev:emulators": "firebase emulators:start --only firestore --import=./fs-dev-stash --export-on-exit=./fs-dev-stash",
     "dev:real-db": "vite --mode prodfirestore",
+    "emulators:persist": "firebase emulators:start --import=./fs-dev-stash --export-on-exit=./fs-dev-stash",
+    "emulators:tests": "firebase emulators:start",
     "build": "tsc && vite build",
-    "preview": "vite preview",
+    "build:tests": "tsc && vite build -m emulators",
+    "cypress": "npx cypress open",
+    "cypress:run": "npx cypress run",
+    "cypress:auto": "npm run build:tests && firebase emulators:exec \"npm run cypress:run\"",
     "deploy:firestore": "firebase deploy --only firestore",
     "deploy": "npm run build && firebase deploy --only hosting"
   },
@@ -26,6 +31,7 @@
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^2.1.0",
     "concurrently": "^7.4.0",
+    "cypress": "^12.5.1",
     "typescript": "^4.6.4",
     "vite": "^3.1.0"
   }

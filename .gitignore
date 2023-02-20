@@ -27,6 +27,7 @@ dist-ssr
 
 # secrets
 .env
+serviceAccount.json
 
 # Firestore emulator directories
 fs-dev-stash

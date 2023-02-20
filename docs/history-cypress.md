@@ -1,0 +1,20 @@
+# How adding Cypress went
+
+## Bootstrapping
+Adding cypress seems really straightforward, but it's not! It took a few hours just to reach the stage where GitHub Actions (GHA) could start the app and run a cypress test that opened the main page.
+
+Once the most basic test was implemented, the next step was logging in. Of course, I didn't want to use the production firebase authentication store (writing tests could make an impossible mess!), so I had to set up the authentication emulator and run that in GHA, too.
+
+## Firebase Emulator Weirdness
+That was when the emulators started showing their quirks. I was finding that I could create an account and log out / log in to that account when I used the app in the browser, targeting the firebase auth emulator, but when *Cypress* tried to do it, it would just fail. It took about an hour of debugging and searching stack overflow until I realized that, when the app runs under Cypress, it can *only* connect to the auth emulator via `http://127.0.0.1:9099`. Using `http://localhost:9099` will not work. That's what led to the tiny fix, commit [338169e4](https://github.com/mmcknett/loggr/commit/338169e4e05c63e7b573668b70539c9412290073).
+
+That fixed, adding tests was smooth sailing until it came time to test drafting and submitting a note. Now we're interacting with the Firestore emulator. This also has surprising quirks when the app runs in Cypress, compared to running in the normal browser! In this case, the actions fail with a network error under Cypress, but the network error has no details because it comes straight from Google's minified `WebChannel` library, which firebase uses for communication between the frontend library and the backend. A Google search yielded various recommendations, including enabling the feature `experimentalForceLongPolling`, but nothing explained how or why that might fix the error, and all of the examples targeted the firebase v8 JavaScript SDK. (I'm using v9.)
+
+I eventually tried it, and it fixed the issue. It seemed like setting that setting for v9 was a shot in the dark, once I discovered that it was still possible to set it in v9, and that the setting I wanted to use was actually `experimentalAutoDetectLongPolling`. To try to save other people trouble, I added an [updated answer](https://stackoverflow.com/a/75452030/7783436) to one of the first SO hits I got when trying to search up the error. One more tiny fix, commit [5e2418e7](https://github.com/mmcknett/loggr/commit/5e2418e74936337dbb1b907cc2b7aa36a8b22da1), and I was in business for testing the database, too. It's worth noting, though, that this "fix" is more of a workaround–it doesn't eliminate the errors, but it does seem to make firebase retry when the `WebChannel` fails. As long as the tests can exercise the UI, though, I'm satisfied.
+
+## Cypress Is Different
+But things are still different running under Cypress, in ways you've surely encountered when running an automated test tool on any system. In particular, the timing of things changes under the test runner, and you get intermittency (or consistent spurious failures) in your tests as a result. The timing is also different when you compare running under GHA CICD vs. running locally.
+
+For example, I had to introduce a half-second wait for the note submission test to persist the change. The firebase library is a little slower on GHA than it is on my computer. I also tried collapsing all the `it` statements into a single test, (see [6fc14042](https://github.com/mmcknett/loggr/commit/6fc14042bbd5eb9016b3d8b4fea925f0a48d94cf)) since the happy path test is, fundamentally, just one long test script. That executed just fine locally. On GHA, though, it failed when trying to test drafting the note. I decided it was more virtuous to accept finer-grained, working tests and move on.
+
+Having cypress wait on the firestore database to reflect updates is the next step I have in mind for reducing timing-related failures and intermittency. In the current state, they will continue to pop up.

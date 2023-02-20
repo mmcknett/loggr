@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 import './App.css'
@@ -15,6 +15,14 @@ import Spinner from './components/Spinner';
 export default function App() {
   let [currentUser, loading] = useAuthState(auth);
   const [showSignup, setShowSignup] = useState(false);
+
+  // For now, respond to the currentUser auth changing by resetting the signup form back to false.
+  // Switching over to React Router for routing will eliminate the need for this.
+  useEffect(() => {
+    if (currentUser) {
+      setShowSignup(false);
+    }
+  }, [currentUser])
 
   return (
     <FirebaseContext.Provider value={{ app, db, auth }}>
