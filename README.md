@@ -2,6 +2,8 @@
 
 A simple SPA using a firebase backend for logging time.
 
+The production app is currently hosted at: https://loggr-a3f89.web.app/
+
 # Development
 ## Setup
 You'll need the firebase CLI tools in order to setup and run emulators or make manual deployments.
