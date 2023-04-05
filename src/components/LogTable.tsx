@@ -85,15 +85,50 @@ function Group({ group }: IGroupProps) {
   const totalHours = group.map((log: ILog) => duration_hours(log)).reduce((a, b) => a + b);
   const weekNumber = DateTime.fromMillis(group[0].endTime!.toMillis()).weekNumber;
 
+  const days = [];
+  let currentGroup = [];
+  let prevDay = DateTime.fromMillis(0);
+  for (const log of group) {
+    const endDate = DateTime.fromSeconds(log.endTime!.seconds);
+    const thisDay = endDate.startOf('day');
+
+    if (!prevDay.equals(thisDay)) {
+      prevDay = thisDay;
+      if (currentGroup.length > 0) {
+        days.push(currentGroup);
+        currentGroup = [];
+      }
+    }
+
+    currentGroup.push(log);
+  }
+
+  if (currentGroup.length > 0) {
+    days.push(currentGroup);
+  }
+
   return (
     <>
     <tr>
       <td colSpan={5}>Week {weekNumber}, Total Hours: {totalHours.toFixed(1)}</td>
     </tr>
     {
-      group.map((log: ILog) => (
-        <Row log={log} />
-      ))
+      days.map((logs: ILog[]) => {
+        const totalHours = logs.map((log: ILog) => duration_hours(log)).reduce((a, b) => a + b);
+        return(
+          <>
+          <tr><td colSpan={5}>
+            {DateTime.fromMillis(logs[0].endTime?.toMillis()).startOf('day').toLocaleString({ weekday: 'short', month: '2-digit', day: '2-digit', year: '2-digit' })}:{' '}
+            {totalHours.toFixed(1)}
+          </td></tr>
+          {
+            logs.map((log: ILog) => (
+              <Row log={log} />
+            ))
+          }
+          </>
+        )
+      })
     }
     </>
   );
@@ -113,9 +148,9 @@ function Row({ log }: IRowProps) {
   return (
     <tr key={log.id}>
       <td className='small-time'>
-        {log.startTime?.toDate().toLocaleString()}
+        {DateTime.fromJSDate(log.startTime?.toDate()).toLocaleString(DateTime.TIME_SIMPLE)}
         <br />
-        {log.endTime?.toDate().toLocaleString()}
+        {DateTime.fromJSDate(log.endTime?.toDate()).toLocaleString(DateTime.TIME_SIMPLE)}
       </td>
       <td>{duration}</td>
       <td>{log.list}</td>

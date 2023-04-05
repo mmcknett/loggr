@@ -124,6 +124,7 @@ input, textarea {
 .small-time {
   font-size: 0.8rem;
   line-height: 0.8rem;
+  min-width: 70px;
 }
 
 th, td {
