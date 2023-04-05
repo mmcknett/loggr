@@ -1,15 +1,19 @@
 import { FirebaseContext } from '../data/FirebaseContext';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { useLogs, deleteLog } from '../hooks/use-logs';
 import { ILog } from '../data/data-types';
 import { useInProgress } from '../hooks/use-in-progress';
 import { DateTime } from 'luxon';
 import Spinner from './Spinner';
+import { useAccount } from '../hooks/use-account';
 
 export function LogTable() {
   const fBaseContext = useContext(FirebaseContext)!;
 
-  const { logs } = useLogs(fBaseContext, "C19 Instruction");
+  const [selectedList, setSelectedList] = useState<string | undefined>(undefined);
+
+  const { account: { recentList } } = useAccount(fBaseContext);
+  const { logs, lists } = useLogs(fBaseContext, selectedList);
   logs.sort((a: ILog, b: ILog) => !a.endTime || !b.endTime ? 0 : b.endTime?.seconds - a.endTime?.seconds);
 
   const groups = [];
@@ -35,6 +39,16 @@ export function LogTable() {
   }
 
   return (
+    <>
+    <div>
+      <select name='list-select' id='list-select' value={selectedList} onChange={e => setSelectedList(e.target.value)}>
+        <option>--</option>
+        {
+          lists.map(listname => <option value={listname}>{listname}</option>)
+        }
+      </select>
+      <button onClick={() => setSelectedList(undefined)}>Clear</button>
+    </div>
     <table>
       <thead>
         <tr>
@@ -53,6 +67,7 @@ export function LogTable() {
           : <tr><td colSpan={5}>No Data</td></tr>}
       </tbody>
     </table>
+    </>
   );
 }
 
@@ -73,7 +88,7 @@ function Group({ group }: IGroupProps) {
   return (
     <>
     <tr>
-      <td colSpan={5}>Week {weekNumber}, Total Hours: {totalHours}</td>
+      <td colSpan={5}>Week {weekNumber}, Total Hours: {totalHours.toFixed(1)}</td>
     </tr>
     {
       group.map((log: ILog) => (
