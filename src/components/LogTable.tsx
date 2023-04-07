@@ -76,7 +76,7 @@ interface IGroupProps {
 }
 
 function duration_hours(log: ILog) {
-  const dur_ms = log.endTime!.toDate() - log.startTime!.toDate();
+  const dur_ms = log.endTime!.toDate().valueOf() - log.startTime!.toDate().valueOf();
   const ms_per_hour = 1000 * 60 * 60;
   return dur_ms / ms_per_hour;
 }
@@ -118,7 +118,7 @@ function Group({ group }: IGroupProps) {
         return(
           <>
           <tr><td colSpan={5}>
-            {DateTime.fromMillis(logs[0].endTime?.toMillis()).startOf('day').toLocaleString({ weekday: 'short', month: '2-digit', day: '2-digit', year: '2-digit' })}:{' '}
+            {DateTime.fromMillis(logs[0].endTime!.toMillis()).startOf('day').toLocaleString({ weekday: 'short', month: '2-digit', day: '2-digit', year: '2-digit' })}:{' '}
             {totalHours.toFixed(1)}
           </td></tr>
           {
@@ -148,9 +148,9 @@ function Row({ log }: IRowProps) {
   return (
     <tr key={log.id}>
       <td className='small-time'>
-        {DateTime.fromJSDate(log.startTime?.toDate()).toLocaleString(DateTime.TIME_SIMPLE)}
+        {DateTime.fromJSDate(log.startTime!.toDate()).toLocaleString(DateTime.TIME_SIMPLE)}
         <br />
-        {DateTime.fromJSDate(log.endTime?.toDate()).toLocaleString(DateTime.TIME_SIMPLE)}
+        {DateTime.fromJSDate(log.endTime!.toDate()).toLocaleString(DateTime.TIME_SIMPLE)}
       </td>
       <td>{duration}</td>
       <td>{log.list}</td>
