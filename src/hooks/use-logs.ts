@@ -3,6 +3,8 @@ import {
   collection,
   deleteDoc,
   DocumentReference,
+  query,
+  where
 } from "firebase/firestore";
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 
@@ -11,9 +13,10 @@ import { DEFAULT_LIST, ILog, logConverter } from '../data/data-types';
 import { checkedLogPath } from "../data/paths";
 import { saveMruListAndDeleteDraft } from "./use-account";
 
-export function useLogs(fBaseContext: IFirebaseContext, listName: string = DEFAULT_LIST) {
+export function useLogs(fBaseContext: IFirebaseContext, listName?: string | undefined) {
   const logsCollection = collection(fBaseContext.db, checkedLogPath(fBaseContext)).withConverter(logConverter);
-  const [logsSnapshot, loading, error] = useCollectionData(logsCollection); //, where("list", "==", listName));
+  const logsQuery = listName ? query(logsCollection, where("list", "==", listName)) : logsCollection;
+  const [logsSnapshot, loading, error] = useCollectionData(logsQuery);
 
   const logs: ILog[] = logsSnapshot || [];
 
