@@ -13,7 +13,7 @@ import { DEFAULT_LIST, ILog, logConverter } from '../data/data-types';
 import { checkedLogPath } from "../data/paths";
 import { saveMruListAndDeleteDraft } from "./use-account";
 
-export function useLogs(fBaseContext: IFirebaseContext, listName: string | undefined) {
+export function useLogs(fBaseContext: IFirebaseContext, listName?: string | undefined) {
   const logsCollection = collection(fBaseContext.db, checkedLogPath(fBaseContext)).withConverter(logConverter);
   const logsQuery = listName ? query(logsCollection, where("list", "==", listName)) : logsCollection;
   const [logsSnapshot, loading, error] = useCollectionData(logsQuery);
