@@ -85,6 +85,11 @@ function Group({ group }: IGroupProps) {
   const totalHours = group.map((log: ILog) => duration_hours(log)).reduce((a, b) => a + b);
   const weekNumber = DateTime.fromMillis(group[0].endTime!.toMillis()).weekNumber;
 
+  const perListTotalHours = group
+    .map((log: ILog) => ({ hours: duration_hours(log), list: log.list }))
+    .reduce((res, { hours, list }) => ({ ...res, [list]: (res[list] || 0) + hours }), {});
+  const numlists = Object.keys(perListTotalHours).length;
+
   const days = [];
   let currentGroup = [];
   let prevDay = DateTime.fromMillis(0);
@@ -109,15 +114,28 @@ function Group({ group }: IGroupProps) {
 
   return (
     <>
-    <tr>
-      <td colSpan={5}>Week {weekNumber}, Total Hours: {totalHours.toFixed(1)}</td>
+    <tr className='space-above'>
+      <td colSpan={5}>
+        <h2>
+        Week {weekNumber}, Total Hours: {totalHours.toFixed(1)}
+        </h2>
+        <p>
+        { numlists > 1 && (
+          <>
+          <ul>
+            { Object.entries(perListTotalHours).map(([list, totalHours]) => <li>{list}: {totalHours.toFixed(1)}</li>) }
+          </ul>
+          </>
+        )}
+        </p>
+      </td>
     </tr>
     {
       days.map((logs: ILog[]) => {
         const totalHours = logs.map((log: ILog) => duration_hours(log)).reduce((a, b) => a + b);
         return(
           <>
-          <tr><td colSpan={5}>
+          <tr><td colSpan={5} className='invert'>
             {DateTime.fromMillis(logs[0].endTime!.toMillis()).startOf('day').toLocaleString({ weekday: 'short', month: '2-digit', day: '2-digit', year: '2-digit' })}:{' '}
             {totalHours.toFixed(1)}
           </td></tr>
