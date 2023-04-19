@@ -6,7 +6,6 @@ name: Deploy to Firebase Hosting on PR
   pull_request:
     paths-ignore:
         - '**/*.md'
-        - '.github/workflows/*.yml'
 jobs:
   build_and_preview:
     needs: cypress-tests
