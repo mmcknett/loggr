@@ -87,7 +87,7 @@ function Group({ group }: IGroupProps) {
 
   const perListTotalHours = group
     .map((log: ILog) => ({ hours: duration_hours(log), list: log.list }))
-    .reduce((res, { hours, list }) => ({ ...res, [list]: (res[list] || 0) + hours }), {});
+    .reduce<{[key:string]: number}>((res, { hours, list }) => ({ ...res, [list]: (res[list] || 0) + hours }), {});
   const numlists = Object.keys(perListTotalHours).length;
 
   const days = [];
