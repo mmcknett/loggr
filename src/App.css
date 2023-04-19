@@ -10,7 +10,7 @@ body {
   text-align: center;
 }
 
-p {
+p, h1, h2 {
   text-align: left;
 }
 
