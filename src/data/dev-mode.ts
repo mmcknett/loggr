@@ -4,5 +4,6 @@ export const shouldUseEmulators =
   import.meta.env.MODE === 'emulators' ||
   (import.meta.env.DEV && import.meta.env.MODE !== 'prodfirestore');
 
-// For now, make drafts save quickly whenever we're emulating.
-export const shouldSaveDraftQuickly = shouldUseEmulators;
+// Let's try always saving drafts quickly because it feels flimsy if drafts don't save
+// immediately when you add a note and switch away from the browser.
+export const shouldSaveDraftQuickly = true;
