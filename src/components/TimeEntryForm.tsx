@@ -85,7 +85,7 @@ export function TimeEntryForm() {
 
   const draftSaved = draft?.savedTime?.toDate().toLocaleString() || '';
 
-  const { register, handleSubmit, watch, formState: { errors }, reset: useFormReset } = useForm<TimeEntryFormData>({
+  const { register, handleSubmit, watch, setValue, formState: { errors }, reset: useFormReset } = useForm<TimeEntryFormData>({
     defaultValues: makeDefaultFormValues(draft?.log),
     values: getFormFieldsFromLog(draft?.log)
   });
@@ -159,6 +159,18 @@ export function TimeEntryForm() {
     deleteDraft();
   };
 
+  const setStartToNow = (evt?: MouseEvent<HTMLButtonElement>) => {
+    evt?.preventDefault();
+    const now = new Date();
+    setValue('startTime', timeString(now));
+  };
+
+  const setEndToNow = (evt?: MouseEvent<HTMLButtonElement>) => {
+    evt?.preventDefault();
+    const now = new Date();
+    setValue('endTime', timeString(now));
+  };
+
   const defaultPlaceholder = recentList ? `${recentList} (last used)` : `${DEFAULT_LIST} (default)`;
 
   return (
@@ -169,8 +181,11 @@ export function TimeEntryForm() {
       <input type='date' id='dateEntry' {...register('dateEntry', { required: true })} />
       {errors.dateEntry && <small className='error-msg' role='alert'>Date is required.</small>}
 
-      <label htmlFor='startTime'>Start:</label>
-      <input tabIndex={1} type='time' id='startTime' {...register('startTime', { required: true })} />
+      <label htmlFor='startTime' className='space-above'>Start:</label>
+      <div className='horiz'>
+        <input tabIndex={1} type='time' id='startTime' {...register('startTime', { required: true })} />
+        <button onClick={ setStartToNow }>Now</button>
+      </div>
       {errors.startTime && <small className='error-msg' role='alert'>Start time is required.</small>}
 
       <label htmlFor='list'>List:</label>
@@ -184,7 +199,10 @@ export function TimeEntryForm() {
       {errors.note && <small className='error-msg' role='alert'>Note is required.</small>}
 
       <label htmlFor='endTime'>End:</label>
-      <input tabIndex={3} type='time' id='endTime' {...register('endTime', { required: true })} />
+      <div className='horiz'>
+        <input tabIndex={3} type='time' id='endTime' {...register('endTime', { required: true })} />
+        <button onClick={ setEndToNow }>Now</button>
+      </div>
       {errors.endTime && <small className='error-msg' role='alert'>End time is required.</small>}
 
       {draftSaved && <em className='notification'>Draft last saved {draftSaved}</em>}
