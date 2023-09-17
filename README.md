@@ -2,7 +2,9 @@
 
 A simple SPA using a firebase backend for logging time.
 
-The production app is currently hosted at: https://loggr-a3f89.web.app/
+`main` build/test status: ![Cypress Test Status indicator](https://github.com/mmcknett/loggr/actions/workflows/cypress-tests.yml/badge.svg?branch=main) ![Firebase Hosting Deployment Status indicator](https://github.com/mmcknett/loggr/actions/workflows/firebase-hosting-merge.yml/badge.svg?branch=main)
+
+Prod deployment to: https://loggr.cyvaer.com
 
 # Development
 ## Setup
