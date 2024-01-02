@@ -163,12 +163,14 @@ export function TimeEntryForm() {
     evt?.preventDefault();
     const now = new Date();
     setValue('startTime', timeString(now));
+    setValue('dateEntry', dateString(now));
   };
 
   const setEndToNow = (evt?: MouseEvent<HTMLButtonElement>) => {
     evt?.preventDefault();
     const now = new Date();
     setValue('endTime', timeString(now));
+    setValue('dateEntry', dateString(now));
   };
 
   const defaultPlaceholder = recentList ? `${recentList} (last used)` : `${DEFAULT_LIST} (default)`;
