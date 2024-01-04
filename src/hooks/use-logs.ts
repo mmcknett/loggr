@@ -4,6 +4,7 @@ import {
   deleteDoc,
   DocumentReference,
   query,
+  Timestamp,
   where
 } from "firebase/firestore";
 import { useCollectionData } from 'react-firebase-hooks/firestore';
@@ -13,9 +14,24 @@ import { ILog } from '../data/data-types';
 import { getLogsCollection } from "../data/collections";
 import { saveMruListAndDeleteDraft, useEnsureAcccountListCacheEffect } from "./use-account";
 
-export function useLogs(fBaseContext: IFirebaseContext, listName?: string | null | undefined) {
+export function useLogs(fBaseContext: IFirebaseContext, listName?: string | null | undefined, filterOldLogs: boolean = true) {
+  const LOOKBACK_DAYS = 21;
+  const startDate = new Date();
+  startDate.setHours(0, 0, 0, 0);
+  startDate.setDate(startDate.getDate() - LOOKBACK_DAYS);
+  const startTimestamp = Timestamp.fromDate(startDate);
+
+  const filters = [];
+  if (filterOldLogs) {
+    filters.push(where("startTime", ">=", startTimestamp));
+  }
+  if (listName) {
+    filters.push(where("list", "==", listName));
+  }
+
   const logsCollection = getLogsCollection(fBaseContext);
-  const logsQuery = listName ? query(logsCollection, where("list", "==", listName)) : logsCollection;
+  const logsQuery = query(logsCollection, ...filters);
+
   const [logsSnapshot, loading, error] = useCollectionData(logsQuery);
 
   const logs: ILog[] = logsSnapshot || [];

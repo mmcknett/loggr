@@ -11,9 +11,10 @@ export function LogTable() {
   const fBaseContext = useContext(FirebaseContext)!;
 
   const [selectedList, setSelectedList] = useState<string | null>(null);
+  const [filterOldLogs, setFilterOldLogs] = useState<boolean>(true);
 
   const { account: { listCache } } = useAccount(fBaseContext);
-  const { logs } = useLogs(fBaseContext, selectedList);
+  const { logs } = useLogs(fBaseContext, selectedList, filterOldLogs);
   logs.sort((a: ILog, b: ILog) => !a.endTime || !b.endTime ? 0 : b.endTime?.seconds - a.endTime?.seconds);
 
   const lists = listCache || [];
@@ -56,6 +57,8 @@ export function LogTable() {
         }
       </select>
       <button onClick={() => setSelectedList(null)}>Clear</button>
+      <span className='vl' />
+      <button onClick={() => setFilterOldLogs(!filterOldLogs)}>{filterOldLogs ? 'Show All' : 'Show Only Recent'}</button>
     </div>
     <table>
       <thead>
