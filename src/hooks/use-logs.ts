@@ -4,18 +4,35 @@ import {
   deleteDoc,
   DocumentReference,
   query,
+  Timestamp,
   where
 } from "firebase/firestore";
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 
 import { IFirebaseContext } from "../data/FirebaseContext";
-import { DEFAULT_LIST, ILog, logConverter } from '../data/data-types';
+import { ILog, logConverter } from '../data/data-types';
 import { checkedLogPath } from "../data/paths";
 import { saveMruListAndDeleteDraft } from "./use-account";
 
-export function useLogs(fBaseContext: IFirebaseContext, listName?: string | undefined) {
-  const logsCollection = collection(fBaseContext.db, checkedLogPath(fBaseContext)).withConverter(logConverter);
-  const logsQuery = listName ? query(logsCollection, where("list", "==", listName)) : logsCollection;
+export function useLogs(fBaseContext: IFirebaseContext, listName?: string | undefined, filterOldLogs: boolean = true) {
+  const LOOKBACK_DAYS = 21;
+  const startDate = new Date();
+  startDate.setHours(0, 0, 0, 0);
+  startDate.setDate(startDate.getDate() - LOOKBACK_DAYS);
+  const startTimestamp = Timestamp.fromDate(startDate);
+
+  const filters = [];
+  if (filterOldLogs) {
+    filters.push(where("startTime", ">=", startTimestamp));
+  }
+  if (listName) {
+    filters.push(where("list", "==", listName));
+  }
+
+  const logPath = checkedLogPath(fBaseContext);
+  const logsCollection = collection(fBaseContext.db, logPath).withConverter(logConverter);
+  const logsQuery = query(logsCollection, ...filters);
+
   const [logsSnapshot, loading, error] = useCollectionData(logsQuery);
 
   const logs: ILog[] = logsSnapshot || [];
