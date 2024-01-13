@@ -15,6 +15,9 @@ import { checkedLogPath } from "../data/paths";
 import { saveMruListAndDeleteDraft } from "./use-account";
 
 export function useLogs(fBaseContext: IFirebaseContext, listName?: string | undefined, filterOldLogs: boolean = true) {
+  
+  // TODO: This isn't working on prod data, possibly because it forgets what all the lists are.
+
   const LOOKBACK_DAYS = 21;
   const startDate = new Date();
   startDate.setHours(0, 0, 0, 0);
