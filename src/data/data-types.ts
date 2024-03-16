@@ -44,7 +44,8 @@ export const logConverter: FirestoreDataConverter<ILog> = {
 
 export interface IAccountData {
   draft?: ILogDraft,
-  recentList?: string
+  recentList?: string,
+  listCache?: string[],
 }
 
 export interface ILogDraft {

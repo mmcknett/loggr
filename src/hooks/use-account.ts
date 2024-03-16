@@ -1,5 +1,5 @@
 import { MutableRefObject, useRef, useState } from "react";
-import { deleteField, doc, DocumentReference, onSnapshot, setDoc, Timestamp, updateDoc } from "firebase/firestore";
+import { deleteField, doc, DocumentReference, onSnapshot, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
 import { useDocumentData } from "react-firebase-hooks/firestore";
 
 import { checkedUid, IFirebaseContext } from "../data/FirebaseContext";
@@ -18,6 +18,28 @@ export function useAccount(fBaseContext: IFirebaseContext) {
   const account: IAccountData = accountData || {};
 
   return { account, loading, error, deleteDraft, saveDraft };
+}
+
+export async function ensureAccountHasLists(fBaseContext: IFirebaseContext, lists: string[]) {
+  const accountPath = checkedAccountPath(fBaseContext);
+  const accountDoc = doc(fBaseContext.db, accountPath);
+  const accountSnap = await getDoc(accountDoc);
+  const account: IAccountData = accountSnap.data() || {};
+
+  
+  // If there is a list cache and every list from the input is in it, no update necessary.
+  if (lists.every(listName => account.listCache?.includes(listName))) {
+    return;
+  }
+
+  // Otherwise, update the list cache.
+  
+  try {
+    // await updateDoc(accountDoc, { listCache: lists });
+    console.log(`Updated lists for user: ${accountPath}`);
+  } catch(err: any) {
+    console.error(`Failed to update lists for user: ${accountPath}. Message: ${err.message}`);
+  }
 }
 
 function makeDeleteDraft(docRef: MutableRefObject<DocumentReference>, path: string) {
