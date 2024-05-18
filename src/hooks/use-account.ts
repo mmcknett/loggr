@@ -3,7 +3,7 @@ import { deleteField, doc, DocumentReference, setDoc, Timestamp, updateDoc, arra
 import { useDocumentData } from "react-firebase-hooks/firestore";
 
 import { checkedUid, IFirebaseContext } from "../data/FirebaseContext";
-import { IAccountData, ILog, ILogDraft } from "../data/data-types";
+import { DEFAULT_LIST, IAccountData, ILog, ILogDraft } from "../data/data-types";
 import { ACCOUNTS_COLLECTION, checkedAccountPath } from "../data/paths";
 import { getLogsCollection } from "../data/collections";
 
@@ -48,6 +48,11 @@ async function healListCacheIfNeeded(fBaseContext: IFirebaseContext, accountDocR
   const allLogDocrefs = await getDocs(logsCollectionSnapshot);
   const uniqueLists = new Set<string>(allLogDocrefs.docs.map(doc => doc.data().list));
   const lists = Array.from(uniqueLists).sort();
+
+  if (lists.length == 0) {
+    // There aren't any logs, so add the default list.
+    lists.push(DEFAULT_LIST);
+  }
 
   const accountPath = accountDocRef.path;
   try {
