@@ -41,6 +41,7 @@ export default function App() {
                 <LogTable /> : 
                 <a
                   className='signup-link'
+                  data-testid='show-all-logs'
                   style={{ marginBlockEnd: '4em' }}
                   onClick={(e) => { e.preventDefault(); setShowLogTable(true); }}
                 >Show All Logs</a>

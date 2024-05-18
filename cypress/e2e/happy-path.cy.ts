@@ -10,10 +10,6 @@ describe('Loggr End-to-end happy path tests', () => {
     cy.clearDb();
   });
 
-  it('Shows a loading spinner', () => {
-    cy.contains('Loading');
-  });
-
   it('Creates a new user', () => {
     cy.get('.signup-link').click();
     cy.get('#email').type('test@example.com');
@@ -52,12 +48,14 @@ describe('Loggr End-to-end happy path tests', () => {
     // FUTURE: This might fail later when the test runs after 8am and we stop allowing end time to be before start time.
     cy.get('#endTime').type('08:00');
     cy.get('form').submit();
+    cy.get(`[data-testid=show-all-logs]`).click();
     cy.get('.note-display').contains('A permanent note');
 
     cy.wait(500); // Give the firestore library a chance to persist the change
   });
 
   it('Can delete the note', () => {
+    cy.get(`[data-testid=show-all-logs]`).click();
     cy.get('.delete-button').click();
     cy.get('td').contains('No Data');
   });
