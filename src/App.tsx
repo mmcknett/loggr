@@ -15,6 +15,7 @@ import Spinner from './components/Spinner';
 export default function App() {
   let [currentUser, loading] = useAuthState(auth);
   const [showSignup, setShowSignup] = useState(false);
+  const [showLogTable, setShowLogTable] = useState(false);
 
   // For now, respond to the currentUser auth changing by resetting the signup form back to false.
   // Switching over to React Router for routing will eliminate the need for this.
@@ -35,7 +36,15 @@ export default function App() {
               <>
               <NavBar />
               <TimeEntryForm />
-              <LogTable />
+              { 
+                showLogTable ? 
+                <LogTable /> : 
+                <a
+                  className='signup-link'
+                  style={{ marginBlockEnd: '4em' }}
+                  onClick={(e) => { e.preventDefault(); setShowLogTable(true); }}
+                >Show All Logs</a>
+              }
               </>
             :
               (
