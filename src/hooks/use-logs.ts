@@ -11,8 +11,7 @@ import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { IFirebaseContext } from "../data/FirebaseContext";
 import { DEFAULT_LIST, ILog, logConverter } from '../data/data-types';
 import { checkedLogPath } from "../data/paths";
-import { saveMruListAndDeleteDraft, ensureAccountHasLists } from "./use-account";
-import { useEffect } from "react";
+import { saveMruListAndDeleteDraft, useEnsureAcccountListCacheEffect } from "./use-account";
 
 export function useLogs(fBaseContext: IFirebaseContext, listName?: string | undefined) {
   const logsCollection = collection(fBaseContext.db, checkedLogPath(fBaseContext)).withConverter(logConverter);
@@ -20,11 +19,10 @@ export function useLogs(fBaseContext: IFirebaseContext, listName?: string | unde
   const [logsSnapshot, loading, error] = useCollectionData(logsQuery);
 
   const logs: ILog[] = logsSnapshot || [];
+  const lists = Array.from(new Set(logs?.map(log => log.list))).sort();
 
-  const lists = Array.from(new Set(logs?.map(log => log.list)));
-  useEffect(() => {
-    ensureAccountHasLists(fBaseContext, lists);
-  }, [lists.sort()]);
+  // A side effect of querying logs is to ensure the account has a list cache.
+  useEnsureAcccountListCacheEffect(fBaseContext, lists);
 
   const addLog = async (entry: ILog) => {
     try {

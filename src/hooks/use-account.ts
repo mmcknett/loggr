@@ -1,4 +1,4 @@
-import { MutableRefObject, useRef, useState } from "react";
+import { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 import { deleteField, doc, DocumentReference, onSnapshot, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
 import { useDocumentData } from "react-firebase-hooks/firestore";
 
@@ -13,33 +13,53 @@ export function useAccount(fBaseContext: IFirebaseContext) {
 
   const [accountData, loading, error] = useDocumentData(accountDocRef.current);
 
-  const deleteDraft = makeDeleteDraft(accountDocRef, accountsPath);
-  const saveDraft = makeSaveDraft(accountDocRef, accountsPath);
+  // TODO: The accountDocRef should be enough to get the path.
+  const deleteDraft = useCallback(makeDeleteDraft(accountDocRef, accountsPath), [accountDocRef, accountsPath]);
+  const saveDraft = useCallback(makeSaveDraft(accountDocRef, accountsPath), [accountDocRef, accountsPath]);
+  const ensureAccountListCache = useCallback(makeEnsureAccountListCache(accountDocRef, accountData), [accountDocRef, accountData]);
   const account: IAccountData = accountData || {};
 
-  return { account, loading, error, deleteDraft, saveDraft };
+  return { account, loading, error, deleteDraft, saveDraft, ensureAccountListCache };
 }
 
-export async function ensureAccountHasLists(fBaseContext: IFirebaseContext, lists: string[]) {
-  const accountPath = checkedAccountPath(fBaseContext);
-  const accountDoc = doc(fBaseContext.db, accountPath);
-  const accountSnap = await getDoc(accountDoc);
-  const account: IAccountData = accountSnap.data() || {};
+/**
+ * Keeps the listCache up to date as we encounter data lists.
+ * @param fBaseContext 
+ * @param lists 
+ * @returns 
+ */
+export async function useEnsureAcccountListCacheEffect(fBaseContext: IFirebaseContext, lists: string[]) {
+  const { ensureAccountListCache } = useAccount(fBaseContext);
+  useEffect(() => {
+    if (lists.length == 0) {
+      return;
+    }
+    ensureAccountListCache(lists);
+  }, [ensureAccountListCache, lists]);
+}
 
+function makeEnsureAccountListCache(accountDocRef: MutableRefObject<DocumentReference>, accountData: IAccountData | undefined) {
+  return async (lists: string[]) => {
+    // If there's no account data, currently, skip.
+    if (!accountData) {
+      return;
+    }
+    
+    // If there is a list cache in the account data and every list from the input is in it, no update necessary.
+    if (accountData.listCache && lists.every(listName => accountData.listCache?.includes(listName))) {
+      return;
+    }
   
-  // If there is a list cache and every list from the input is in it, no update necessary.
-  if (lists.every(listName => account.listCache?.includes(listName))) {
-    return;
-  }
-
-  // Otherwise, update the list cache.
-  
-  try {
-    // await updateDoc(accountDoc, { listCache: lists });
-    console.log(`Updated lists for user: ${accountPath}`);
-  } catch(err: any) {
-    console.error(`Failed to update lists for user: ${accountPath}. Message: ${err.message}`);
-  }
+    // Otherwise, update the list cache.
+    const accountDoc = accountDocRef.current;
+    const accountPath = accountDoc.path;
+    try {
+      await updateDoc(accountDoc, { listCache: lists });
+      console.log(`Updated lists for user: ${accountPath}`);
+    } catch(err: any) {
+      console.error(`Failed to update lists for user: ${accountPath}. Message: ${err.message}`);
+    }
+  };
 }
 
 function makeDeleteDraft(docRef: MutableRefObject<DocumentReference>, path: string) {
