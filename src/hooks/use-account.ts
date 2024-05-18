@@ -1,10 +1,11 @@
-import { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
-import { deleteField, doc, DocumentReference, onSnapshot, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
+import { MutableRefObject, useCallback, useEffect, useRef } from "react";
+import { deleteField, doc, DocumentReference, setDoc, Timestamp, updateDoc, arrayUnion, getDocs, DocumentData } from "firebase/firestore";
 import { useDocumentData } from "react-firebase-hooks/firestore";
 
 import { checkedUid, IFirebaseContext } from "../data/FirebaseContext";
 import { IAccountData, ILog, ILogDraft } from "../data/data-types";
 import { ACCOUNTS_COLLECTION, checkedAccountPath } from "../data/paths";
+import { getLogsCollection } from "../data/collections";
 
 export function useAccount(fBaseContext: IFirebaseContext) {
   const accountsPath = checkedAccountPath(fBaseContext);
@@ -17,9 +18,45 @@ export function useAccount(fBaseContext: IFirebaseContext) {
   const deleteDraft = useCallback(makeDeleteDraft(accountDocRef, accountsPath), [accountDocRef, accountsPath]);
   const saveDraft = useCallback(makeSaveDraft(accountDocRef, accountsPath), [accountDocRef, accountsPath]);
   const ensureAccountListCache = useCallback(makeEnsureAccountListCache(accountDocRef, accountData), [accountDocRef, accountData]);
-  const account: IAccountData = accountData || {};
 
+  // As a side effect of account data becoming available, heal the list cache if necessary.
+  useEffect(() => {
+    if (accountDocRef.current) {
+      healListCacheIfNeeded(fBaseContext, accountDocRef.current, accountData);
+    }
+  }, [accountDocRef, accountData])
+
+  const account: IAccountData = accountData || {};
   return { account, loading, error, deleteDraft, saveDraft, ensureAccountListCache };
+}
+
+async function healListCacheIfNeeded(fBaseContext: IFirebaseContext, accountDocRef: DocumentReference, accountData: DocumentData | undefined) {
+  // If there's no account data at all, don't try to detect that the list cache is missing.
+  if (!accountData) {
+    return;
+  }
+
+  // If the list cache is there and has data, don't heal. Rely on the "ensure" function to keep the cache
+  // up to date with the logs being loaded in all other circumstances.
+  if (accountData.listCache !== undefined && accountData.listCache.length > 0) {
+    return;
+  }
+
+  // If the list cache is missing or empty, query all logs to rebuild it.
+  console.log(`List cache missing for user ${accountDocRef.path}. Rebuilding...`);
+  const logsCollectionSnapshot = getLogsCollection(fBaseContext);
+  const allLogDocrefs = await getDocs(logsCollectionSnapshot);
+  const uniqueLists = new Set<string>(allLogDocrefs.docs.map(doc => doc.data().list));
+  const lists = Array.from(uniqueLists).sort();
+
+  const accountPath = accountDocRef.path;
+  try {
+    // Use updateDoc so that this fails if we haven't created the account yet.
+    await updateDoc(accountDocRef, { listCache: lists });
+    console.log(`Healed list cache for user: ${accountPath}`);
+  } catch(err: any) {
+    console.error(`Failed to heal list cache for user: ${accountPath}. Message: ${err.message}`);
+  }
 }
 
 /**
@@ -54,7 +91,7 @@ function makeEnsureAccountListCache(accountDocRef: MutableRefObject<DocumentRefe
     const accountDoc = accountDocRef.current;
     const accountPath = accountDoc.path;
     try {
-      await updateDoc(accountDoc, { listCache: lists });
+      await updateDoc(accountDoc, { listCache: arrayUnion(...lists) });
       console.log(`Updated lists for user: ${accountPath}`);
     } catch(err: any) {
       console.error(`Failed to update lists for user: ${accountPath}. Message: ${err.message}`);
@@ -97,7 +134,11 @@ function makeSaveDraft(docRef: MutableRefObject<DocumentReference>, path: string
 export async function saveMruListAndDeleteDraft(fBaseContext: IFirebaseContext, list: string) {
   const uid = checkedUid(fBaseContext);
   const docRef = doc(fBaseContext.db, ACCOUNTS_COLLECTION, uid);
-  await setDoc(docRef, { draft: deleteField(), recentList: list }, { merge: true });
+  await setDoc(docRef, {
+    draft: deleteField(), // Delete the draft
+    recentList: list, // Set the most recently used list
+    listCache: arrayUnion(list) // Make sure the list is added to the listCache (it might be new).
+  }, { merge: true });
   console.log(`Deleted draft and set MRU list for user ${uid}`);
 }
 
