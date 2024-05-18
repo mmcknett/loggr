@@ -13,7 +13,7 @@ import { ILog } from '../data/data-types';
 import { getLogsCollection } from "../data/collections";
 import { saveMruListAndDeleteDraft, useEnsureAcccountListCacheEffect } from "./use-account";
 
-export function useLogs(fBaseContext: IFirebaseContext, listName?: string | undefined) {
+export function useLogs(fBaseContext: IFirebaseContext, listName?: string | null | undefined) {
   const logsCollection = getLogsCollection(fBaseContext);
   const logsQuery = listName ? query(logsCollection, where("list", "==", listName)) : logsCollection;
   const [logsSnapshot, loading, error] = useCollectionData(logsQuery);
@@ -24,7 +24,7 @@ export function useLogs(fBaseContext: IFirebaseContext, listName?: string | unde
   // A side effect of querying logs is to ensure the account has all the lists we queried in its cache.
   useEnsureAcccountListCacheEffect(fBaseContext, listsFromLogs);
 
-  return { logs, lists: listsFromLogs, loading, error };
+  return { logs, loading, error };
 }
 
 export async function addLog(fBaseContext: IFirebaseContext, entry: ILog) {

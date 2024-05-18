@@ -10,11 +10,13 @@ import { useAccount } from '../hooks/use-account';
 export function LogTable() {
   const fBaseContext = useContext(FirebaseContext)!;
 
-  const [selectedList, setSelectedList] = useState<string | undefined>(undefined);
+  const [selectedList, setSelectedList] = useState<string | null>(null);
 
-  const { account: { recentList } } = useAccount(fBaseContext);
-  const { logs, lists } = useLogs(fBaseContext, selectedList);
+  const { account: { listCache } } = useAccount(fBaseContext);
+  const { logs } = useLogs(fBaseContext, selectedList);
   logs.sort((a: ILog, b: ILog) => !a.endTime || !b.endTime ? 0 : b.endTime?.seconds - a.endTime?.seconds);
+
+  const lists = listCache || [];
 
   const groups = [];
   let currentGroup = [];
@@ -41,13 +43,19 @@ export function LogTable() {
   return (
     <>
     <div>
-      <select name='list-select' id='list-select' value={selectedList} onChange={e => setSelectedList(e.target.value)}>
-        <option>--</option>
+      <select
+        name='list-select'
+        id='list-select'
+        value={selectedList || '--'}
+        onChange={e => setSelectedList(e.target.value)}
+        style={{ marginInlineEnd: '1em' }}
+      >
+        <option value='--'>--</option>
         {
           lists.map(listname => <option value={listname}>{listname}</option>)
         }
       </select>
-      <button onClick={() => setSelectedList(undefined)}>Clear</button>
+      <button onClick={() => setSelectedList(null)}>Clear</button>
     </div>
     <table>
       <thead>
