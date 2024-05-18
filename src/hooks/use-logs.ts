@@ -9,14 +9,9 @@ import {
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 
 import { IFirebaseContext } from "../data/FirebaseContext";
-import { DEFAULT_LIST, ILog, logConverter } from '../data/data-types';
-import { checkedLogPath } from "../data/paths";
+import { ILog } from '../data/data-types';
+import { getLogsCollection } from "../data/collections";
 import { saveMruListAndDeleteDraft, useEnsureAcccountListCacheEffect } from "./use-account";
-
-function getLogsCollection(fBaseContext: IFirebaseContext) {
-  const logsCollection = collection(fBaseContext.db, checkedLogPath(fBaseContext)).withConverter(logConverter);
-  return logsCollection
-}
 
 export function useLogs(fBaseContext: IFirebaseContext, listName?: string | undefined) {
   const logsCollection = getLogsCollection(fBaseContext);
