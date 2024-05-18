@@ -1,6 +1,6 @@
 import { FirebaseContext } from '../data/FirebaseContext';
-import { useContext, useEffect, MouseEvent, useRef, MutableRefObject, FormEvent } from 'react';
-import { useLogs } from '../hooks/use-logs';
+import { useContext, useEffect, MouseEvent, useRef, MutableRefObject, FormEvent, useCallback } from 'react';
+import { addLog } from '../hooks/use-logs';
 import { Timestamp } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 import { DEFAULT_LIST, ILog } from '../data/data-types';
@@ -81,7 +81,10 @@ export function TimeEntryForm() {
 
   const { account, deleteDraft, saveDraft } = useAccount(fBaseContext);
   const { draft, recentList } = account;
-  const { lists, addLog } = useLogs(fBaseContext);
+
+  // Populate the lists from the account's list cache, or use the default list.
+  const lists = (account.listCache && account.listCache.length > 0) ? account.listCache : [DEFAULT_LIST];
+  const addLogCb = useCallback((entry: ILog) => addLog(fBaseContext, entry), [fBaseContext]);
 
   const draftSaved = draft?.savedTime?.toDate().toLocaleString() || '';
 
@@ -141,7 +144,7 @@ export function TimeEntryForm() {
     cancelDraftSave(); // Stop any in-progress drafts from saving so we don't stomp the form state with it.
 
     try {
-      await addLog(entry);
+      await addLogCb(entry);
       reset();
     } catch (err: any) {
       console.error(`Failed to submit form: ${err.message}`);
