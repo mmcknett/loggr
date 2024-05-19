@@ -3,7 +3,7 @@ name: Cypress Tests
   push:
     paths-ignore:
         - '**/*.md'
-        - '.github/workflows/*.yml'
+        # - '.github/workflows/*.yml'
 
 jobs:
   cypress-run:
