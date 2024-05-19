@@ -35,7 +35,7 @@ describe('Loggr End-to-end happy path tests', () => {
   it('Can create a draft that persists', () => {
     cy.get('#note').type('A draft note');
 
-    cy.wait(1100); // Draft takes a second to save
+    cy.wait(1500); // Draft takes a second to save
 
     cy.visit(INDEX);
     cy.get('#note').should('have.value', 'A draft note'); // .contains isn't working for a textarea; .should('have.value', ...) does, though.
