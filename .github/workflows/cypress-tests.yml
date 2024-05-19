@@ -17,6 +17,8 @@ jobs:
       # and run all Cypress tests
       - name: Cypress run
         uses: cypress-io/github-action@v5.0.8 # use the explicit version number
+        env:
+          DEBUG: '@cypress/github-action' # Turn on debug logs for troubleshooting
         with:
           # Wait for the emulator UI to be available (indicates emulators fully loaded)
           # and for the page to be available on the hosting emulator.
