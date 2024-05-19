@@ -19,9 +19,11 @@ jobs:
         uses: cypress-io/github-action@v5.0.8 # use the explicit version number
         env:
           DEBUG: '@cypress/github-action' # Turn on debug logs for troubleshooting
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
         with:
           # Wait for the emulator UI to be available (indicates emulators fully loaded)
           # and for the page to be available on the hosting emulator.
           wait-on: 'http://localhost:4000, http://localhost:5000'
           build: 'npm run build:tests'
           start: npm run emulators:tests
+          record: true
