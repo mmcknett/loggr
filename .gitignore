@@ -31,3 +31,6 @@ serviceAccount.json
 
 # Firestore emulator directories
 fs-dev-stash
+
+# Cypress videos
+*.mp4
