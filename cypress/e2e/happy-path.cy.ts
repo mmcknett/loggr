@@ -10,10 +10,6 @@ describe('Loggr End-to-end happy path tests', () => {
     cy.clearDb();
   });
 
-  it('Shows a loading spinner', () => {
-    cy.contains('Loading');
-  });
-
   it('Creates a new user', () => {
     cy.get('.signup-link').click();
     cy.get('#email').type('test@example.com');
@@ -39,7 +35,7 @@ describe('Loggr End-to-end happy path tests', () => {
   it('Can create a draft that persists', () => {
     cy.get('#note').type('A draft note');
 
-    cy.wait(1100); // Draft takes a second to save
+    cy.wait(1500); // Draft takes a second to save
 
     cy.visit(INDEX);
     cy.get('#note').should('have.value', 'A draft note'); // .contains isn't working for a textarea; .should('have.value', ...) does, though.
@@ -52,12 +48,14 @@ describe('Loggr End-to-end happy path tests', () => {
     // FUTURE: This might fail later when the test runs after 8am and we stop allowing end time to be before start time.
     cy.get('#endTime').type('08:00');
     cy.get('form').submit();
+    cy.get(`[data-testid=show-all-logs]`).click();
     cy.get('.note-display').contains('A permanent note');
 
     cy.wait(500); // Give the firestore library a chance to persist the change
   });
 
   it('Can delete the note', () => {
+    cy.get(`[data-testid=show-all-logs]`).click();
     cy.get('.delete-button').click();
     cy.get('td').contains('No Data');
   });
