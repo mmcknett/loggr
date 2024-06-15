@@ -1,7 +1,7 @@
 {
   "name": "loggr",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently --names \"emu,vite\" -c \"magenta,blue\" --prefix \"[{name}]\" \"npm:emulators:persist\" \"npm:dev:vite\"",
