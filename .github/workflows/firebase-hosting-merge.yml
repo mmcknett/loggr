@@ -8,7 +8,7 @@ name: Deploy to Firebase Hosting on merge
       - main
     paths-ignore:
       - '**/*.md'
-      - '.github/workflows/*.yml'
+      # - '.github/workflows/*.yml'
 jobs:
   test:
     uses: ./.github/workflows/cypress-tests.yml
