@@ -1,5 +1,4 @@
 body {
-  font-size: 2vh;
   line-height: 1.4em;
 }
 
@@ -8,16 +7,25 @@ body {
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  min-width: 60vw;
+}
+
+@media screen and (min-width: 1280px){
+  #root {
+    min-width: 800px;
+  }
+}
+
+@media screen and (max-width: 600px){
+  #root {
+    padding: 0;
+    min-width: calc(100% - 2em);
+    margin: 0.5em 1em;
+  }
 }
 
 p, h1, h2 {
   text-align: left;
-}
-
-.App {
-  display: flex;
-  flex-direction: column;
-  min-width: 60vw;
 }
 
 /* Nav bar styling */
@@ -91,11 +99,10 @@ input, textarea {
 }
 
 #note {
-  height: 40vh;
+  height: 25vh;
+  min-height: 5em;
   align-self: stretch;
-  /* max-width: 60rem; */
-  padding: 1em;
-  font-size: 0.75em;
+  padding: 0.5em;
 }
 
 #submit-row {

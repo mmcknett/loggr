@@ -27,7 +27,7 @@ export default function App() {
 
   return (
     <FirebaseContext.Provider value={{ app, db, auth }}>
-      <div className='App'>
+      <>
         {
             loading ? 
               <div>Loading <Spinner/></div>
@@ -57,7 +57,7 @@ export default function App() {
                 </>
               )
         }
-      </div>
+      </>
     </FirebaseContext.Provider>
   )
 }
