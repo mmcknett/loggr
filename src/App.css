@@ -96,7 +96,7 @@ input, textarea {
 
 #note {
   height: 25vh;
-  min-height: 5em;
+  min-height: 7.5em;
   align-self: stretch;
   padding: 0.5em;
 }
