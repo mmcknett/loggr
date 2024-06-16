@@ -116,16 +116,17 @@ input, textarea {
   display: flex;
   flex-direction: row;
   align-items: center;
-}
-
-.horiz > * {
-  margin-right: 1em;
+  gap: 1em;
 }
 
 .vert {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+}
+
+.wrap {
+  flex-wrap: wrap;
 }
 
 .notification {

@@ -186,12 +186,25 @@ export function TimeEntryForm() {
       <input type='date' id='dateEntry' {...register('dateEntry', { required: true })} />
       {errors.dateEntry && <small className='error-msg' role='alert'>Date is required.</small>}
 
-      <label htmlFor='startTime' className='space-above'>Start:</label>
-      <div className='horiz'>
-        <input tabIndex={1} type='time' id='startTime' {...register('startTime', { required: true })} />
-        <button onClick={ setStartToNow }>Now</button>
+      <div className='horiz space-above wrap'>
+        <div className='vert'>
+          <label htmlFor='startTime'>Start:</label>
+          <div className='horiz'>
+            <input type='time' id='startTime' {...register('startTime', { required: true })} />
+            <button onClick={ setStartToNow }>Now</button>
+          </div>
+          {errors.startTime && <small className='error-msg' role='alert'>Start time is required.</small>}
+        </div>
+        
+        <div className='vert'>
+          <label htmlFor='endTime'>End:</label>
+          <div className='horiz'>
+            <input type='time' id='endTime' {...register('endTime', { required: true })} />
+            <button onClick={ setEndToNow }>Now</button>
+          </div>
+          {errors.endTime && <small className='error-msg' role='alert'>End time is required.</small>}
+        </div>
       </div>
-      {errors.startTime && <small className='error-msg' role='alert'>Start time is required.</small>}
 
       <label htmlFor='list'>List:</label>
       <input list='lists' autoComplete='off' placeholder={defaultPlaceholder} {...register('list')} />
@@ -200,20 +213,13 @@ export function TimeEntryForm() {
       </datalist>
 
       <label htmlFor='note'>Notes:</label>
-      <textarea tabIndex={2} id='note' {...register('note', { required: true })} />
+      <textarea id='note' {...register('note', { required: true })} />
       {errors.note && <small className='error-msg' role='alert'>Note is required.</small>}
-
-      <label htmlFor='endTime'>End:</label>
-      <div className='horiz'>
-        <input tabIndex={3} type='time' id='endTime' {...register('endTime', { required: true })} />
-        <button onClick={ setEndToNow }>Now</button>
-      </div>
-      {errors.endTime && <small className='error-msg' role='alert'>End time is required.</small>}
 
       {draftSaved && <em className='notification'>Draft last saved {draftSaved}</em>}
 
       <div id='submit-row' className='horiz'>
-        <button tabIndex={5} type='submit' disabled={ submitInProgress }>Add Entry {submitInProgress && <Spinner/>}</button>
+        <button type='submit' disabled={ submitInProgress }>Add Entry {submitInProgress && <Spinner/>}</button>
         <button type='reset' onClick={handleDraftDelete}>Delete Draft</button>
       </div>
     </form>
