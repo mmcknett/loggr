@@ -1,5 +1,5 @@
 #root {
-  max-width: 1280px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -127,6 +127,15 @@ input, textarea {
 
 .wrap {
   flex-wrap: wrap;
+}
+
+.spread {
+  justify-content: space-between;
+  align-self: stretch;
+}
+
+.spread > * {
+  flex: auto;
 }
 
 .notification {

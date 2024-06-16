@@ -186,7 +186,7 @@ export function TimeEntryForm() {
       <input type='date' id='dateEntry' {...register('dateEntry', { required: true })} />
       {errors.dateEntry && <small className='error-msg' role='alert'>Date is required.</small>}
 
-      <div className='horiz space-above wrap'>
+      <div className='horiz space-above wrap spread'>
         <div className='vert'>
           <label htmlFor='startTime'>Start:</label>
           <div className='horiz'>
