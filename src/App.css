@@ -1,5 +1,5 @@
 #root {
-  max-width: 1280px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -116,16 +116,26 @@ input, textarea {
   display: flex;
   flex-direction: row;
   align-items: center;
-}
-
-.horiz > * {
-  margin-right: 1em;
+  gap: 1em;
 }
 
 .vert {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+}
+
+.wrap {
+  flex-wrap: wrap;
+}
+
+.spread {
+  justify-content: space-between;
+  align-self: stretch;
+}
+
+.spread > * {
+  flex: auto;
 }
 
 .notification {
