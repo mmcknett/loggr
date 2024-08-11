@@ -35,9 +35,12 @@ export function useLogs(fBaseContext: IFirebaseContext, listName?: string | null
   const [logsSnapshot, loading, error] = useCollectionData(logsQuery);
 
   const logs: ILog[] = logsSnapshot || [];
-  const listsFromLogs = Array.from(new Set(logs?.map(log => log.list))).sort();
+  if (error !== undefined) {
+    console.error(`Error in useLogs: ${error}`)
+  }
 
   // A side effect of querying logs is to ensure the account has all the lists we queried in its cache.
+  const listsFromLogs = Array.from(new Set(logs?.map(log => log.list))).sort();
   useEnsureAcccountListCacheEffect(fBaseContext, listsFromLogs);
 
   return { logs, loading, error };
