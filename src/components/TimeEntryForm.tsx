@@ -207,7 +207,7 @@ export function TimeEntryForm() {
       </div>
 
       <label htmlFor='list'>List:</label>
-      <input list='lists' autoComplete='off' placeholder={defaultPlaceholder} {...register('list')} />
+      <input list='lists' id='list' autoComplete='off' placeholder={defaultPlaceholder} {...register('list')} />
       <datalist id='lists'>
         { lists.map(listName => <option key={ listName } value={ listName } />) }
       </datalist>

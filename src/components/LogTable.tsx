@@ -1,11 +1,12 @@
 import { FirebaseContext } from '../data/FirebaseContext';
-import { useContext, useState } from 'react';
+import { Fragment, useContext, useState } from 'react';
 import { useLogs, deleteLog } from '../hooks/use-logs';
 import { ILog } from '../data/data-types';
 import { useInProgress } from '../hooks/use-in-progress';
 import { DateTime } from 'luxon';
 import Spinner from './Spinner';
 import { useAccount } from '../hooks/use-account';
+import './LogTable.css';
 
 export function LogTable() {
   const fBaseContext = useContext(FirebaseContext)!;
@@ -51,9 +52,9 @@ export function LogTable() {
         onChange={e => setSelectedList(e.target.value)}
         style={{ marginInlineEnd: '1em' }}
       >
-        <option value='--'>--</option>
+        <option value='--' key='--'>--</option>
         {
-          lists.map(listname => <option value={listname}>{listname}</option>)
+          lists.map(listname => <option value={listname} key={listname}>{listname}</option>)
         }
       </select>
       <button onClick={() => setSelectedList(null)}>Clear</button>
@@ -73,7 +74,7 @@ export function LogTable() {
       <tbody>
         {groups && groups.length > 0 ?
           groups.map((group: ILog[]) => (
-            <Group group={group} />
+            <Group group={group} key={`${get_year(group)}.${get_week_number(group)}`} />
           ))
           : <tr><td colSpan={5}>No Data</td></tr>}
       </tbody>
@@ -92,9 +93,19 @@ function duration_hours(log: ILog) {
   return dur_ms / ms_per_hour;
 }
 
+function get_week_number(group: ILog[]): string {
+  const weekNumber = DateTime.fromMillis(group[0].endTime!.toMillis()).weekNumber;
+  return weekNumber.toFixed(0);
+}
+
+function get_year(group: ILog[]): string {
+  const year = DateTime.fromMillis(group[0].endTime!.toMillis()).year;
+  return year.toFixed(0);
+}
+
 function Group({ group }: IGroupProps) {
   const totalHours = group.map((log: ILog) => duration_hours(log)).reduce((a, b) => a + b);
-  const weekNumber = DateTime.fromMillis(group[0].endTime!.toMillis()).weekNumber;
+  const weekNumber = get_week_number(group);
 
   const perListTotalHours = group
     .map((log: ILog) => ({ hours: duration_hours(log), list: log.list }))
@@ -130,32 +141,35 @@ function Group({ group }: IGroupProps) {
         <h2>
         Week {weekNumber}, Total Hours: {totalHours.toFixed(1)}
         </h2>
-        <p>
+        <div>
         { numlists > 1 && (
           <>
           <ul>
-            { Object.entries(perListTotalHours).map(([list, totalHours]) => <li>{list}: {totalHours.toFixed(1)}</li>) }
+            { Object.entries(perListTotalHours).map(([list, totalHours]) => <li key={list}>{list}: {totalHours.toFixed(1)}</li>) }
           </ul>
           </>
         )}
-        </p>
+        </div>
       </td>
     </tr>
     {
       days.map((logs: ILog[]) => {
-        const totalHours = logs.map((log: ILog) => duration_hours(log)).reduce((a, b) => a + b);
+        const totalHours = logs.map(
+          (log) => duration_hours(log)).reduce((a, b) => a + b
+        );
+        const date = logs[0].endTime!.toDate().toDateString();
         return(
-          <>
+          <Fragment key={date}>
           <tr><td colSpan={5} className='invert'>
             {DateTime.fromMillis(logs[0].endTime!.toMillis()).startOf('day').toLocaleString({ weekday: 'short', month: '2-digit', day: '2-digit', year: '2-digit' })}:{' '}
             {totalHours.toFixed(1)}
           </td></tr>
           {
-            logs.map((log: ILog) => (
-              <Row log={log} />
+            logs.map((log) => (
+              <Row log={log} key={log.id} />
             ))
           }
-          </>
+          </Fragment>
         )
       })
     }
