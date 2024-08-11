@@ -44,7 +44,7 @@ export default function App() {
                   data-testid='show-all-logs'
                   style={{ marginBlockEnd: '4em' }}
                   onClick={(e) => { e.preventDefault(); setShowLogTable(true); }}
-                >Show All Logs</a>
+                >Show History</a>
               }
               </>
             :
