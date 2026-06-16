@@ -13,7 +13,7 @@ jobs:
       # Install NPM dependencies, cache them correctly
       # and run all Cypress tests
       - name: Cypress run
-        uses: cypress-io/github-action@v5.0.8 # use the explicit version number
+        uses: cypress-io/github-action@v7
         env:
           DEBUG: '@cypress/github-action' # Turn on debug logs for troubleshooting
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
