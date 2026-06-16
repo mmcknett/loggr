@@ -8,7 +8,7 @@ Prod deployment to: https://loggr.mmcknett.dev
 
 # Development
 ## Setup
-You'll need the firebase CLI tools in order to setup and run emulators or make manual deVployments.
+You'll need the firebase CLI tools in order to setup and run emulators or make manual deployments.
 
 ```
 npm i -g firebase-tools
