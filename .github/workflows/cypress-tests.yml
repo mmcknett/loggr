@@ -20,7 +20,7 @@ jobs:
         with:
           # Wait for the emulator UI to be available (indicates emulators fully loaded)
           # and for the page to be available on the hosting emulator.
-          wait-on: 'http://localhost:4000, http://localhost:5000'
+          wait-on: 'http://localhost:4000, http://localhost:5002'
           build: 'npm run build:tests'
           start: npm run emulators:tests
           record: false

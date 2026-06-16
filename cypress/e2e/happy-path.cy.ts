@@ -1,4 +1,4 @@
-const INDEX = 'http://localhost:5000/'; // The URL for the firebase hosting emulator
+const INDEX = 'http://localhost:5002/'; // The URL for the firebase hosting emulator
 
 describe('Loggr End-to-end happy path tests', () => {
   beforeEach(() => {

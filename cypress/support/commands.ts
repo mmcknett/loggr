@@ -40,7 +40,7 @@ import { auth, attachEmulators, projectId } from '../../src/data/firebase';
 attachEmulators(); // Make sure the emulators have been attached when Cypress accesses them.
 
 Cypress.Commands.add('deleteUser', () => {
-  auth.currentUser.delete();
+  auth?.currentUser?.delete();
 });
 
 Cypress.Commands.add('clearDb', () => {
