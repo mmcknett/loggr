@@ -7,7 +7,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'oracle' # See https://github.com/marketplace/actions/setup-java-jdk#supported-distributions for available options
+          java-version: '25'
+      - name: Ensure java 21+ is installed
+        run: |
+          # Adapated from https://www.javathinking.com/blog/correct-way-to-check-java-version-from-bash-script
+
+          # This SO was useful for figuring out how to write the regex correctly inline:
+          # https://stackoverflow.com/questions/13150411/why-does-bash-rematch-not-work-for-a-quoted-regular-expression
+
+          if [[ "$(java --version)" =~ [[:space:]]([[:digit:]]+)\. ]]; then
+          # if [[ "openjdk 17" =~ [[:space:]]([[:digit:]]+)\.? ]]; then # Uncomment to test that it fails on lower versions
+            JAVA_VERSION="${BASH_REMATCH[1]}"
+            JAVA_VERSION="${JAVA_VERSION:-0}"
+            echo "Got java version $JAVA_VERSION"
+            if [[ $JAVA_VERSION -lt "21" ]]; then
+              echo "...but needed java 21+"
+              exit 1
+            fi
+          fi
       # Install firebase emulators
       - run: npm install -g firebase-tools
       # Install NPM dependencies, cache them correctly
